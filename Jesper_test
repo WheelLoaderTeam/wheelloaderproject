@@ -1,5 +1,10 @@
 To test 
+<<<<<<< HEAD
 difference, here's a 
 handling, change!
+=======
+difference, difference!
+handling
+>>>>>>> 702a6e84c76f1081f42cad6f1a003a8539b59e2b
 between , I now change a line here
 documents, a change on another line
