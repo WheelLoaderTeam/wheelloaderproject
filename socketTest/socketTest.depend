@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1383746777 source:/home/wlt-ssd/wheelloaderproject/socketTest/main.c
+	<stdio.h>
+	<string.h>
+	<stdlib.h>
+	<arpa/inet.h>
+	<sys/socket.h>
+
