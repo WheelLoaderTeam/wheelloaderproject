@@ -27,6 +27,7 @@ void init_ADC(void) {
 	ADMUX &= ~(1<<REFS1);	\\Clear REFS1
 	ADMUX |= (1<<REFS0);	\\Set voltage reference to AVcc
 	ADMUX &= ~(1<<ADLAR);	\\Make sure ADLAR is zero (right adjusted result)
-	
-	
+	ADCSRA |= ((1<<ADPS2)|(1<<ADPS1));	\\Set division to 8MHz/64 = 125kHz
+	ADCSRA |= (1<<ADEN);	\\Turn on ADC 
+	ADCSRA |= (1<<ADSC);	\\Do an initial conversion (takes longest time)
 }

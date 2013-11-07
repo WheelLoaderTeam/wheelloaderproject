@@ -6,18 +6,36 @@
  */ 
 
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <avr/io.h>
+#include <string.h>
+#include <avr/interrupt.h>
+#include <avr/signal.h>
+
+
+#include "init.h"
 
 uint16_t adc_value_x;		//x-axis value
 uint16_t adc_value_y;		//y-axis value
 uint16_t adc_value_z;		//z-axis value
-uint16_t read_adc(uint8_t channel);		//Function to read ADC
+uint16_t read_adc(uint8_t channel);		//Function to read ADC, channel = 0x
 
 int main(void)
 {
     while(1)
     {
-        //TODO:: Please write your application code 
+        for(i=0; i<3, i++){
+			if(i == 0){
+				adc_value_z = read_adc(i);
+			}
+			if(i == 1){
+				adc_value_y = read_adc(i);
+			}
+			if(i==2){
+				adc_value_x = read_adc(i);
+			}
+		}
     }
 }
 
