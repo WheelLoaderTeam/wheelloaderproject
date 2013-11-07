@@ -1,0 +1,10 @@
+File description
+----------------
+.cmp	- Top copper layer (Layer 1)
+.sol	- Bottom copper layer (Layer 16)
+.stc	- Solder stop mask TOP
+.sts	- Solder stop mask BOTTOM
+.dim	- Outer Dimmension
+.drd    - Drill file
+
+.crt    - Cream mask TOP (Stencil)
