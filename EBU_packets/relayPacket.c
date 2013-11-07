@@ -161,3 +161,17 @@ typedef struct relay_t{
 	uint8_t channel[14];
 } relay_t;
 
+void setRelay(relay_t packet, int relay, int relayValue){
+	int byte = relay / 8;
+	int ofset = relay % 8;
+	
+	uint8_t mask = 0x80 >> ofset;
+	
+	uint8_t value = 0;
+	if  relayValue {
+		value = 0xFF;
+	}
+	
+	packet->channel[byte] = (packet->channel[byte] & mask) | (value & mask);
+	
+}
