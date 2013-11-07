@@ -64,6 +64,7 @@ int main(void)
         {
             die("sendto()");
         }
+        memset(buf, '\0',BUFLEN);
     }
 
     close(s);
