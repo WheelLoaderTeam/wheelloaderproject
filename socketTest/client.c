@@ -60,7 +60,6 @@ int main(void)
         {
             die("recvfrom()");
         }
-
         puts(buf);
     }
 
