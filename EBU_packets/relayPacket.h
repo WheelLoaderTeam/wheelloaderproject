@@ -1,4 +1,4 @@
-
+#include <stdint.h>
 
 typedef struct EBU_relay_packet{
 	uint8_t channel[14];
@@ -147,4 +147,4 @@ typedef struct EBU_relay_packet{
 #define R_res7 	111
 
 void setRelay(EBU_relay_packet *packet, int relay, int relayValue);
-int getRelay(EBU_relay_packet *packet, int relay);
+uint8_t getRelay(EBU_relay_packet *packet, int relay);

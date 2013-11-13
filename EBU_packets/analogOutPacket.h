@@ -1,5 +1,4 @@
-
-
+#include <stdint.h>
 
 typedef struct EBU_analog_out_packet{
 	uint16_t channel[24];
