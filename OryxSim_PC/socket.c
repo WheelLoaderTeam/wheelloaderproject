@@ -7,9 +7,8 @@ void die(char *s)
 }
 
 
-int initSocket(int inport,int outport, char* outipaddress, struct sockaddr_in insock, struct sockaddr_in outsock){
+int initSocket(int inport,int outport,int si, int so, char* outipaddress, struct sockaddr_in insock, struct sockaddr_in outsock){
 
-    int si, so; // integer containing  result of socket()
 
     if ((si=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
@@ -21,7 +20,6 @@ int initSocket(int inport,int outport, char* outipaddress, struct sockaddr_in in
     }
 
     memset((char *) &insock, 0, sizeof(insock));
-
     insock.sin_family = AF_INET;
     insock.sin_port = htons(inport);
     insock.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -41,10 +39,6 @@ int initSocket(int inport,int outport, char* outipaddress, struct sockaddr_in in
         die("bind");
     }
 
-    if( bind(so , (struct sockaddr*)&outsock, sizeof(outsock) ) == -1)
-    {
-        die("bind");
-    }
 
     return 1;
 

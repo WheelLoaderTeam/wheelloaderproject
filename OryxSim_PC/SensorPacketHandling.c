@@ -10,9 +10,12 @@
 
 int main(int argc, char *argv[]){
     struct sockaddr_in insock, outsock ;
+    int s_onBoard, s_sim, recv_len, slen = sizeof(outsock) ;
     struct timeval tv;
     int retval, mode;
-    float buf[LEN_BUF_SENSOR];
+    float buf [LEN_BUF_SENSOR];
+
+//choose frequency mode
     printf ("choose your mode(1-2):" );
     scanf("%d",&mode);
 
@@ -34,19 +37,22 @@ int main(int argc, char *argv[]){
 
     }
 
-    if (initSocket(IMU_PORT,MOV_PORT,SIM_IP,insock,outsock)==1){
+    if (initSocket(IMU_PORT,MOV_PORT,s_onBoard, s_sim, SIM_IP,insock,outsock)==1){
         printf ("init success\n");
 
         while(1){
-            printf("waiting data\n");
-            recvfrom()
+
+             if ((recv_len = recvfrom(s_onBoard, buf, LEN_BUF_SENSOR, 0, (struct sockaddr *) &outsock, &slen)) == -1)
+        {
+            die("recvfrom()");
+        }
+
             if(mode == 1 ){
                 retval= select(1,NULL,NULL,NULL, &tv);
                 if (retval == -1)
                     perror("select()");
-
                 else
-                    printf("No data within 10 mseconds.\n");
+                    printf("I have waited 10 mseconds.\n");
 
             }
 
@@ -54,11 +60,8 @@ int main(int argc, char *argv[]){
                 retval= select(1,NULL,NULL,NULL, &tv);
                 if (retval == -1)
                     perror("select()");
-                else if (retval)
-                    printf("Data is available now.\n");
-                /* FD_ISSET(0, &rfds) will be true. */
                 else
-                printf("No data within 20 mseconds.\n");
+                printf("I have waited 20 mseconds.\n");
 
             }
 
