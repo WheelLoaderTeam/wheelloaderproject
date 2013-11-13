@@ -14,25 +14,22 @@ int main(int argc, char *argv[]){
     struct timeval tv;
     int retval, mode;
     float buf [LEN_BUF_SENSOR];
-
+    /*TODO il faut remettre les valeurs du timer á chauqe tour de boucle sinon ca marche pas */
     sscanf(argv[1],"%d",&mode);
-    printf("le mode est %d \n", mode);
     switch (mode){
-        case '1' :
+        case 1 :
         {//100Hz
-        tv.tv_sec=0;
-        tv.tv_usec=10000;
-
-        break;
+            printf("mode 1\n");
+            break;
         }
-        case '2' :
+        case 2 :
         {//50Hz
-        tv.tv_sec=0;
-        tv.tv_usec=20000;
-        break;
+            printf("mode 1\n");
+            break;
         }
         default:
-        break;
+            printf ("wrong mode choose 1 or 2\n");
+            break;
 
     }
 
@@ -40,13 +37,15 @@ int main(int argc, char *argv[]){
         printf ("init success\n");
 
         while(1){
-        printf("mode value %d\n", mode);
-             /*if ((recv_len = recvfrom(s_onBoard, buf, LEN_BUF_SENSOR, 0, (struct sockaddr *) &outsock, &slen)) == -1)
-        {
-            die("recvfrom()");
-        */
+
+           /* if ((recv_len = recvfrom(s_onBoard, buf, LEN_BUF_SENSOR, 0, (struct sockaddr *) &outsock, (socklen_t*) &slen)) == -1){
+                die("recvfrom()");
+            }*/
 
             if(mode == 1 ){
+                printf("i'm in mode 1\n");
+                tv.tv_sec=1;
+                tv.tv_usec=10000;
                 retval= select(1,NULL,NULL,NULL, &tv);
                 if (retval == -1)
                     perror("select()");
@@ -56,6 +55,9 @@ int main(int argc, char *argv[]){
             }
 
             else if(mode == 2 ){
+                printf("i'm in mode 2\n");
+                tv.tv_sec=2;
+                tv.tv_usec=20000;
                 retval= select(1,NULL,NULL,NULL, &tv);
                 if (retval == -1)
                     perror("select()");
@@ -63,6 +65,7 @@ int main(int argc, char *argv[]){
                 printf("I have waited 20 mseconds.\n");
 
             }
+            else printf("my mode doesn't exist");
 
     }
 }
