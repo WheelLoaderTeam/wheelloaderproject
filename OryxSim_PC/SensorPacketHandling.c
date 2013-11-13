@@ -40,7 +40,7 @@ int main(int argc, char *argv[]){
         printf ("init success\n");
 
         while(1){
-
+        printf("mode value %d\n", mode);
              /*if ((recv_len = recvfrom(s_onBoard, buf, LEN_BUF_SENSOR, 0, (struct sockaddr *) &outsock, &slen)) == -1)
         {
             die("recvfrom()");
