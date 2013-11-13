@@ -15,15 +15,14 @@ int main(int argc, char *argv[]){
     int retval, mode;
     float buf [LEN_BUF_SENSOR];
 
-//choose frequency mode
-    printf ("choose your mode(1-2):" );
-    scanf("%d",&mode);
-
+    sscanf(argv[1],"%d",&mode);
+    printf("le mode est %d \n", mode);
     switch (mode){
         case '1' :
         {//100Hz
         tv.tv_sec=0;
         tv.tv_usec=10000;
+
         break;
         }
         case '2' :
@@ -42,10 +41,10 @@ int main(int argc, char *argv[]){
 
         while(1){
 
-             if ((recv_len = recvfrom(s_onBoard, buf, LEN_BUF_SENSOR, 0, (struct sockaddr *) &outsock, &slen)) == -1)
+             /*if ((recv_len = recvfrom(s_onBoard, buf, LEN_BUF_SENSOR, 0, (struct sockaddr *) &outsock, &slen)) == -1)
         {
             die("recvfrom()");
-        }
+        */
 
             if(mode == 1 ){
                 retval= select(1,NULL,NULL,NULL, &tv);
