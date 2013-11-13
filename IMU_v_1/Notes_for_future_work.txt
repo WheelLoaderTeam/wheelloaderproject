@@ -1,0 +1,1 @@
+Check if CKDIV8 fuse is enabled, if so, unenable it. (Probably messes up the Baudrate)

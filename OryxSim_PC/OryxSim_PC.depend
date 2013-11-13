@@ -1,8 +1,8 @@
 # depslib dependency file v1.0
-1383834979 source:/home/wlt-ssd/wheelloaderproject/OryxSim_PC/socket.c
+1384348366 source:/home/wlt-ssd/wheelloaderproject/OryxSim_PC/socket.c
 	"Socket.h"
 
-1383834964 /home/wlt-ssd/wheelloaderproject/Socket.h
+1384348273 /home/wlt-ssd/wheelloaderproject/Socket.h
 	<sys/socket.h>
 	<sys/types.h>
 	<netinet/in.h>
@@ -11,6 +11,13 @@
 	<stdio.h>
 	<arpa/inet.h>
 
-1383835636 source:/home/wlt-ssd/wheelloaderproject/OryxSim_PC/IMUHandling.c
+1384346036 source:/home/wlt-ssd/wheelloaderproject/OryxSim_PC/IMUHandling.c
+	<sys/time.h>
+	<unistd.h>
+	"Socket.h"
+
+1384350284 source:/home/wlt-ssd/wheelloaderproject/OryxSim_PC/SensorPacketHandling.c
+	<sys/time.h>
+	<unistd.h>
 	"Socket.h"
 

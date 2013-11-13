@@ -83,10 +83,18 @@
 
 #define SIM_IP "10.0.0.5" //TODO change with the good IP
 
+/**
+*\def LEN_BUF_SENSOR lenght on floats of a sensor data packet ID,size,6*datas
+*/
+
+#define LEN_BUF_SENSOR 8
+
+#define LEN_BUF_COMMAND 32 //TODO ask Andrey about this one
+
 /** \brief PROTOTYPES
  */
  void die(char *s);
-int initSocket(int inport,int outport, char* outipaddress, struct sockaddr_in insock, struct sockaddr_in outsock);
+int initSocket(int inport,int outport,int si, int so, char* outipaddress, struct sockaddr_in insock, struct sockaddr_in outsock);
 
 
 

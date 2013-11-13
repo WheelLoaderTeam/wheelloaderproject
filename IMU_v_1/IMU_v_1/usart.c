@@ -1,5 +1,5 @@
 /*! \file usart.c \brief USART routines.
- * \author Mikael Larsmark
+ * \author Mikael Larsmark, modified by Jesper Hamfelt 2013-11-11
  * \date 2009-10-28
 */
 /***************************************************************************
@@ -110,7 +110,7 @@ unsigned char poll_usart0_receive(void ) {
  * This function is used to initialize the USART which a baudrate
  * that needs to be sent in as a parameter Use the baudrate settings
  * specified in the ATMEGA128 baudrate setting.
- * \param baud The baudrate param from the ATMEGA32 datasheet.
+ * \param baud The baudrate param from the ATMEGA32 datasheet. Modifiying, doesn't seem to be corectly pointed in registers /Jesper.
  */
 void usart1_init(unsigned int baudrate) {
 	/* Set baud rate */
