@@ -26,31 +26,50 @@ uint16_t read_adc(uint8_t channel);		//Function to read ADC
 void usart_init(unsigned int baudrate);
 void usart_send(unsigned char data);
 void usart_putstring(char* data, unsigned char length);
+char buffer_x[17];
+char buffer_y[17];
+char buffer_z[17];
+int length_x;
+int length_y;
+int length_z;
 
 int main(void)
 {
-	char buffer[17];
+	
 	usart_init(25);
 	init_ADC();
-	int length;
+	init_timer();
+
+	sei();
     while(1)
     {
-        for(i=0; i<3; i++){
-				adc_value = read_adc(i);
-				usart_putstring("Reading channel ",16);
-				usart_send('0' + i);
-				usart_putstring(" : ",3);
-				itoa(adc_value,buffer,10);
-				length = strlen(buffer);
-				usart_putstring(buffer,length);
-				usart_putstring("  ",2);
-				_delay_ms(500);			
-				}
-		usart_send('\r');
-		usart_send('\n');
+		//i = 0 is z-axis, i = 1 is y-axis, i = 2 is x-axis
+		for(i=0; i<3; i++){
+			adc_value = read_adc(i);
+			if(i == 0){
+				itoa(adc_value, buffer_z,10);
+				length_z = strlen(buffer_z);
+			}
+			if(i == 1){
+				itoa(adc_value,buffer_y,10);
+				length_y = strlen(buffer_y);
+			}
+			if(i ==2){
+				itoa(adc_value,buffer_x,10);
+				length_x = strlen(buffer_x);
+			}
+		}
 	}
 }
 
+ISR(TIMER1_COMPA_vect){
+	usart_putstring("Reading channel ",16);
+	usart_putstring("z",1);
+	usart_putstring(" : ",3);
+	usart_putstring(buffer_z,length_z);
+	usart_send('\r');
+	usart_send('\n');
+}
 
 //All this should be put in another file, like init.c
 uint16_t read_adc(uint8_t channel){
