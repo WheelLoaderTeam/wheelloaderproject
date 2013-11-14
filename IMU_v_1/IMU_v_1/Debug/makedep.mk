@@ -6,5 +6,3 @@ IMU_v_1.c
 
 init.c
 
-usart.c
-
