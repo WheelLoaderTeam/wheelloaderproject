@@ -31,3 +31,9 @@ void init_ADC(void) {
 	ADCSRA |= (1<<ADEN);	//Turn on ADC 
 	ADCSRA |= (1<<ADSC);	//Do an initial conversion (takes longest time)
 }
+
+void init_timer(void){
+	TCCR1B |= (1<<WGM12)|(1<<CS12)|(1<<CS10);
+	TIMSK1 |= (1<<OCIE1A);
+	OCR1A = 0x030C;
+}

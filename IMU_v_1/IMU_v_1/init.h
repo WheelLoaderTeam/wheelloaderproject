@@ -9,4 +9,6 @@ void init_usb_usart(unsigned char baudrate);
 
 void init_ADC(void);
 
+void init_timer(void);
+
 #endif
