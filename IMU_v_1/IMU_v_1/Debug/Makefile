@@ -38,7 +38,7 @@ SUBDIRS :=
 C_SRCS +=  \
 ../IMU_v_1.c \
 ../init.c \
-../usart.c
+../spi.c
 
 
 PREPROCESSING_SRCS += 
@@ -50,22 +50,22 @@ ASM_SRCS +=
 OBJS +=  \
 IMU_v_1.o \
 init.o \
-usart.o
+spi.o
 
 OBJS_AS_ARGS +=  \
 IMU_v_1.o \
 init.o \
-usart.o
+spi.o
 
 C_DEPS +=  \
 IMU_v_1.d \
 init.d \
-usart.d
+spi.d
 
 C_DEPS_AS_ARGS +=  \
 IMU_v_1.d \
 init.d \
-usart.d
+spi.d
 
 OUTPUT_FILE_PATH +=IMU_v_1.elf
 
