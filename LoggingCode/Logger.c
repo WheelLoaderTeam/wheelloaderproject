@@ -8,7 +8,7 @@ int logcounter = 0;
 char * logfiletime;
 char logfilename[80];
 
-char * CurrentDateTime()
+char * currentDateTime()
 {
   time_t rawtime;
   struct tm * timeinfo;
@@ -20,18 +20,18 @@ char * CurrentDateTime()
   return asctime(timeinfo);
 }
 
-int  LogRealTime(int timestamp, int packetID, char *event, int data1, int data2, int data3)
+int  logRealTime(int timestamp, int packetID, char *event, int data1, int data2, int data3)
 {
     printf("Log: %8d %4d %s  %d  %d  %d \n", timestamp, packetID, event, data1, data2, data3); //format data appropriately
 }
 
-int LogToFile(int timestamp, int packetID, char *event, int data1, int data2, int data3)
+int logToFile(int timestamp, int packetID, char *event, int data1, int data2, int data3)
 {
     if(logcounter > 50000 || logcounter == 0)
     {
         *logfilename = '\0';
-        logfiletime = CurrentDateTime();
-        strcpy(logfilename, "LogFile ");
+        logfiletime = currentDateTime();
+        strcpy(logfilename, "LogFile");
         strcat(logfilename, logfiletime);
         strcat(logfilename, ".txt");
         logcounter = 1;
@@ -54,12 +54,12 @@ int main()
     int fakedata3 = 78910;
 
     int testlength = 100000;
-    char * currentime = CurrentDateTime();
+    char * currentime = currentDateTime();
     printf("%s\n", currentime);
     while(testlength--)
     {
-        LogToFile(faketimestamp, fakepacketID, fakeevent, fakedata1, fakedata2, fakedata3);
-        LogRealTime(faketimestamp, fakepacketID, fakeevent, fakedata1, fakedata2, fakedata3);
+        logToFile(faketimestamp, fakepacketID, fakeevent, fakedata1, fakedata2, fakedata3);
+        logRealTime(faketimestamp, fakepacketID, fakeevent, fakedata1, fakedata2, fakedata3);
     }
 
 

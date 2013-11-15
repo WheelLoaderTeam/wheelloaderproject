@@ -1,0 +1,23 @@
+all: EBUtest
+
+EBUtest: EBUtest.c EBUrelays.o EBUanalogIn.o EBUanalogOut.o EBUdigitalIn.o EBUdigitalOut.o
+	gcc -std=c99 -o EBUtest EBUtest.c EBUrelays.o EBUanalogIn.o EBUanalogOut.o EBUdigitalIn.o EBUdigitalOut.o
+
+EBUrelays.o:EBUrelays.c EBUrelays.h
+	gcc -std=c99 -c EBUrelays.c EBUrelays.h
+
+EBUanalogIn.o: EBUanalogIn.c EBUanalogIn.h
+	gcc -std=c99 -c EBUanalogIn.c EBUanalogIn.h
+
+EBUanalogOut.o: EBUanalogOut.c EBUanalogOut.h
+	gcc -std=c99 -c EBUanalogOut.c EBUanalogOut.h
+
+EBUdigitalIn.o: EBUdigitalIn.c EBUdigitalIn.h
+	gcc -std=c99 -c EBUdigitalIn.c EBUdigitalIn.h
+
+EBUdigitalOut.o: EBUdigitalOut.c EBUdigitalOut.h
+	gcc -std=c99 -c EBUdigitalOut.c EBUdigitalOut.h
+
+
+clean:
+	rm -rf *.o *.gch EBUtest

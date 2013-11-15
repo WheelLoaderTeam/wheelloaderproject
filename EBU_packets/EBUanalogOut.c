@@ -1,6 +1,6 @@
-#include analogOutPacket.h
+#include "EBUanalogOut.h"
 
-void setAnalogOut(EBU_analog_out_packet *packet, int channel, float value){
+void setAnalogOut(EBUanalogOut *packet, int channel, float value){
 	uint16_t intValue;
 	
 	if(value > 5){
@@ -15,7 +15,7 @@ void setAnalogOut(EBU_analog_out_packet *packet, int channel, float value){
 	packet->channel[channel] = intValue;	
 }
 
-float getAnalogOut(EBU_analog_out_packet *packet, int channel){
+float getAnalogOut(EBUanalogOut *packet, int channel){
 	
 	uint16_t intValue = packet->channel[channel];
 	
