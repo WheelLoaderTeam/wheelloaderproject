@@ -1,6 +1,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include "Socket.h"
+#include "log"
 
 
 // argv[1] is the frequency parameter to send packet to simulator
@@ -9,12 +10,13 @@
 
 
 int main(int argc, char *argv[]){
+
     struct sockaddr_in insock, outsock ;
     int s_onBoard, s_sim, recv_len, slen = sizeof(outsock) ;
     struct timeval tv;
     int retval, mode;
     float buf [LEN_BUF_SENSOR];
-    /*TODO il faut remettre les valeurs du timer á chauqe tour de boucle sinon ca marche pas */
+    /*TODO il faut remettre les valeurs du timer á chaque tour de boucle sinon ca marche pas */
     sscanf(argv[1],"%d",&mode);
     switch (mode){
         case 1 :
@@ -28,7 +30,7 @@ int main(int argc, char *argv[]){
             break;
         }
         default:
-            printf ("wrong mode choose 1 or 2\n");
+            printf ("wrong mode chosen 1 or 2\n");
             break;
 
     }
@@ -38,9 +40,9 @@ int main(int argc, char *argv[]){
 
         while(1){
 
-           /* if ((recv_len = recvfrom(s_onBoard, buf, LEN_BUF_SENSOR, 0, (struct sockaddr *) &outsock, (socklen_t*) &slen)) == -1){
+           if ((recv_len = recvfrom(s_onBoard, buf, LEN_BUF_SENSOR, 0, (struct sockaddr *) &outsock, (socklen_t*) &slen)) == -1){
                 die("recvfrom()");
-            }*/
+            }
 
             if(mode == 1 ){
                 printf("i'm in mode 1\n");
@@ -51,6 +53,11 @@ int main(int argc, char *argv[]){
                     perror("select()");
                 else
                     printf("I have waited 10 mseconds.\n");
+                    //send the message
+                    if (sendto(s_sim, buf, strlen(buf) , 0 , (struct sockaddr *) &outsock, (socklen_t*) &slen)==-1)
+                    {
+                        die("sendto()");
+                    }
 
             }
 
