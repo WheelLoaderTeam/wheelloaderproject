@@ -36,7 +36,7 @@ int length_z;
 int main(void)
 {
 	
-	usart_init(25);
+	usart_init(1);
 	init_ADC();
 	init_timer();
 
@@ -63,10 +63,20 @@ int main(void)
 }
 
 ISR(TIMER1_COMPA_vect){
-	usart_putstring("Reading channel ",16);
-	usart_putstring("z",1);
-	usart_putstring(" : ",3);
+//	usart_putstring("Reading channel ",16);
+	//usart_putstring("z",1);
+	//usart_putstring(" : ",3);
 	usart_putstring(buffer_z,length_z);
+	usart_putstring(" ",1);
+	//usart_putstring("Reading channel ",16);
+	//usart_putstring("z",1);
+	//usart_putstring(" : ",3);
+	usart_putstring(buffer_y,length_y);
+	usart_putstring(" ",1);
+	//usart_putstring("Reading channel ",16);
+	//usart_putstring("z",1);
+	//usart_putstring(" : ",3);
+	usart_putstring(buffer_x,length_x);
 	usart_send('\r');
 	usart_send('\n');
 }

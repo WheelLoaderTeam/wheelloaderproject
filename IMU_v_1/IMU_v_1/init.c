@@ -32,8 +32,14 @@ void init_ADC(void) {
 	ADCSRA |= (1<<ADSC);	//Do an initial conversion (takes longest time)
 }
 
-void init_timer(void){
-	TCCR1B |= (1<<WGM12)|(1<<CS12)|(1<<CS10);
-	TIMSK1 |= (1<<OCIE1A);
-	OCR1A = 0x030C;
+void init_timer(void){		//Timer for creating interrupts to send measured data (CTC)
+	TCCR1B |= (1<<WGM12)|(1<<CS11);  //Set in CTC-mode, compare with OCR1A, fIO/8
+	TIMSK1 |= (1<<OCIE1A);	//Enable compare match interrupt
+	OCR1A = 0x270F;			//0x270F with fIO/8 creates a 100 Hz interrupt frequency
+
+/*! Just a test to see correctness, interrupt at 1Hz
+TCCR1B |= (1<<WGM12)|(1<<CS12)|(1<<CS10);
+TIMSK1 |= (1<<OCIE1A);
+OCR1A = 0x1E83;
+*/
 }
