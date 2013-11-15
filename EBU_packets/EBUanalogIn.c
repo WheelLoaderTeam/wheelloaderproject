@@ -1,6 +1,6 @@
-#include analogInPacket.h
+#include "EBUanalogIn.h"
 
-void setAnalogIn(EBU_analog_in_packet *packet, int channel, float value){
+void setAnalogIn(EBUanalogIn *packet, int channel, float value){
 	uint16_t intValue;
 	
 	if(value > 5){
@@ -14,7 +14,7 @@ void setAnalogIn(EBU_analog_in_packet *packet, int channel, float value){
 	packet->channel[channel] = intValue;	
 }
 
-float getAnalogIn(EBU_analog_in_packet *packet, int channel){
+float getAnalogIn(EBUanalogIn *packet, int channel){
 	
 	uint16_t intValue = packet->channel[channel];
 	

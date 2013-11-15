@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "relayPacket.h"
 
@@ -20,6 +21,7 @@ int main(void){
 	printf("\n\nresult: %x\n\n", r);
 	
 	memcpy(buf, &packet, sizeof(EBU_relay_packet));
+	
 	
 	printf("buf[0]: %x\n", buf[0]);
 	printf("buf[1]: %x\n", buf[1]);

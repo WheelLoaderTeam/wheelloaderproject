@@ -1,10 +1,10 @@
 #include <stdint.h>
 
-typedef struct EBU_relay_packet{
+typedef struct EBUrelays{
 	uint8_t channel[14];
-} EBU_relay_packet;
+} EBUrelays;
 
-#define new_EBU_relay_packet() {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define newEBUrelays() {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 #define R_S19 	0
 #define R_S20 	1
@@ -146,5 +146,5 @@ typedef struct EBU_relay_packet{
 #define R_res6 	110
 #define R_res7 	111
 
-void setRelay(EBU_relay_packet *packet, int relay, int relayValue);
-uint8_t getRelay(EBU_relay_packet *packet, int relay);
+void setRelay(EBUrelays *packet, int relay, int value);
+uint8_t getRelay(EBUrelays *packet, int relay);
