@@ -11,7 +11,7 @@ int initServerSocket(int port, int s, struct sockaddr_in sock){
 
 int initClientSocket(int port, int s, char* ipaddress, struct sockaddr_in sock){
 	initSocket(port, s, sock);
-	if (inet_aton(ipaddress, &sock.sin_addr) == 0){
+	if (inet_pton(AF_INET, ipaddress, &sock.sin_addr) == 0){
 		fprintf(stderr, "inet_aton() failed\n");
 		exit(1);
 	}
@@ -26,7 +26,7 @@ int initSocket(int port, int s, struct sockaddr_in sock){
 	
 	memset((char *) &sock, 0, sizeof(sock));
 	sock.sin_family = AF_INET;
-	sock.sin_port = htons(inport);
+	sock.sin_port = htons(port);
 	sock.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	return 1;

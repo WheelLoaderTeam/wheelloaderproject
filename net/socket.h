@@ -18,7 +18,7 @@
 
 
 /**
-*\def MOV_PORT Port number for sending the movements packets to Simulqtor
+*\def MOV_PORT Port number for sending the movements packets to Simulator
 */
 #define MOV_PORT 65101
 
