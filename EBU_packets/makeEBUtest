@@ -1,7 +1,7 @@
-all: EBUtest
+all: clean EBUtest
 
 EBUtest: EBUtest.c EBUrelays.o EBUanalogIn.o EBUanalogOut.o EBUdigitalIn.o EBUdigitalOut.o socket.o
-	gcc -std=c99 -o EBUtest EBUtest.c EBUrelays.o EBUanalogIn.o EBUanalogOut.o EBUdigitalIn.o EBUdigitalOut.o
+	gcc -std=c99 -iquote ../net -o EBUtest EBUtest.c EBUrelays.o EBUanalogIn.o EBUanalogOut.o EBUdigitalIn.o EBUdigitalOut.o socket.o
 
 EBUrelays.o:EBUrelays.c EBUrelays.h
 	gcc -std=c99 -c EBUrelays.c
