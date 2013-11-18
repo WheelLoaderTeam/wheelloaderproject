@@ -1,3 +1,4 @@
+#include <stdint.h>
 
 typedef struct EBUdigitalOut{
 	uint8_t channel[8];

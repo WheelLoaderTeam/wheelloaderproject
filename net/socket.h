@@ -93,8 +93,13 @@
 
 /** \brief PROTOTYPES
  */
- void die(char *s);
-int initSocket(int inport,int outport,int si, int so, char* outipaddress, struct sockaddr_in insock, struct sockaddr_in outsock);
+
+
+
+int initServerSocket(int port, int s, struct sockaddr_in sock);
+int initClientSocket(int port, int s, char* ipaddress, struct sockaddr_in sock);
+int initSocket(int port, int s, struct sockaddr_in sock);
+void die(char *s);
 
 
 

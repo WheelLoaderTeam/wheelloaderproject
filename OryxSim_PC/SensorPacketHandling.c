@@ -40,7 +40,7 @@ int main(int argc, char *argv[]){
             break;
         }
         default:
-            printf ("wrong mode chosen 1 or 2\n");
+            printf ("wrong mode. chose 1 2 3 4 \n");
             break;
 
     }
