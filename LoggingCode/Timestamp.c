@@ -4,19 +4,20 @@
 #include <stdio.h>
 
 
-char * getTimeOfDay(char* buffer)
+int getTimeOfDay(char* buffer)
 {
+  int len;
   struct timeval tv;
 
   time_t curtime;
 
   gettimeofday(&tv, NULL);
   curtime=tv.tv_sec;
-  int len;
-  len = strftime(buffer,30,"%d-%m-%Y_%T.",localtime(&curtime));
-  sprintf(buffer + len, "%ld",tv.tv_usec);
 
-  return 0;
+  len = strftime(buffer,30,"%d-%m-%Y_%T.",localtime(&curtime));
+  len += sprintf(buffer + len, "%ld",tv.tv_usec);
+
+  return len;
 }
 
 int main()
