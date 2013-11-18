@@ -17,10 +17,10 @@ int main(void){
 	int slen = sizeof(struct sockaddr_in);	
 	int s_relays, s_analog_in, s_analog_out;
 	
-	initServerSocket(25101, &s_analog_in, analog_in_socket);
+	initServerSocket(25101, &s_analog_in, &analog_in_socket);
 	
-	initClientSocket(25400, &s_relays, "10.0.0.2", relays_socket);
-	initClientSocket(25400, &s_analog_out, "10.0.0.2", analog_out_socket);
+	initClientSocket(25400, &s_relays, "10.0.0.2", &relays_socket);
+	initClientSocket(25400, &s_analog_out, "10.0.0.2", &analog_out_socket);
 	
 	
 	//building relay packet
@@ -31,7 +31,7 @@ int main(void){
 	setRelay(&relays, R_A12, 1);
 	
 	//send relay packet
-	sendto(s_relays, (char*)&relays, sizeof(EBUrelays), 0, (struct sockaddr*) &relays_socket, slen);
+	//sendto(s_relays, (char*)&relays, sizeof(EBUrelays), 0, (struct sockaddr*) &relays_socket, slen);
 	
 	while(1){
 		char buf[255];

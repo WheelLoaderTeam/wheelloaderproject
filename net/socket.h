@@ -96,9 +96,9 @@
 
 
 
-int initServerSocket(int port, int* s, struct sockaddr_in sock);
-int initClientSocket(int port, int* s, char* ipaddress, struct sockaddr_in sock);
-int initSocket(int port, int* s, struct sockaddr_in sock);
+int initServerSocket(int port, int* s, struct sockaddr_in* sock);
+int initClientSocket(int port, int* s, char* ipaddress, struct sockaddr_in* sock);
+int initSocket(int port, int* s, struct sockaddr_in* sock);
 void die(char *s);
 
 
