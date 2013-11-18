@@ -1,15 +1,15 @@
 #include "socket.h"
 
-int initServerSocket(int port, int s, struct sockaddr_in sock){
+int initServerSocket(int port, int* s, struct sockaddr_in sock){
 	initSocket(port, s, sock);
 	//bind socket to port
-	if( bind(s , (struct sockaddr*)&sock, sizeof(sock) ) == -1){
+	if( bind(*s , (struct sockaddr*)&sock, sizeof(sock) ) == -1){
 		die("bind");
 	}
 	return 1;
 }
 
-int initClientSocket(int port, int s, char* ipaddress, struct sockaddr_in sock){
+int initClientSocket(int port, int* s, char* ipaddress, struct sockaddr_in sock){
 	initSocket(port, s, sock);
 	if (inet_pton(AF_INET, ipaddress, &sock.sin_addr) == 0){
 		fprintf(stderr, "inet_aton() failed\n");
@@ -18,9 +18,9 @@ int initClientSocket(int port, int s, char* ipaddress, struct sockaddr_in sock){
 	return 1;
 }
 
-int initSocket(int port, int s, struct sockaddr_in sock){
+int initSocket(int port, int* s, struct sockaddr_in sock){
 	
-	if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1){
+	if ((*s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1){
 		die("socket");
 	}
 	
