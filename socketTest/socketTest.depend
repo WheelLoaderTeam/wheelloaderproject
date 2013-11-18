@@ -6,3 +6,10 @@
 	<arpa/inet.h>
 	<sys/socket.h>
 
+1383747666 source:/home/wlt-ssd/wheelloaderproject/socketTest/client.c
+	<stdio.h>
+	<string.h>
+	<stdlib.h>
+	<arpa/inet.h>
+	<sys/socket.h>
+

@@ -1,0 +1,30 @@
+ Compile and install bootloader.
+ This works best under Linux. If windows is used, remove 'sudo' before all the command in the Makefile.
+ Requirements:
+ avrdude, avr-gcc, make
+
+ Step 1: Compile the bootloader by typing 'make'.
+ Step 2: Upload the program by typing 'make program'.
+ Step 3: If needed, set the fuse bits by typing 'make program_hfuse'. This will start the
+         MCU from the bootloader area.
+ Step 4 (Optional): Type 'make read_program' to read the content of the flash on the MCU to
+                    read_main.hex. Then manually check that the bootloader is correctly installed.
+
+ Install avrprog.
+ To be able to access avrprog easily it can be copied to '/usr/local/bin' or any other folder in
+ the bin search path under Linux. Under Windows one can add the folder with avrprog to the
+ environment variable PATH.
+
+ Program application.
+ Requirements:
+ Python 2.x, pyserial
+
+ Step 1: Press the S5 button while reseting to enter the bootloader, LED3 should turn on.
+ Step 2: Use avrprog to send the application to the MCU. To find out how to use avrprog run
+         the program without any input. When the programming of the MCU
+         is done LED3 should turn off. Note that the program must be in ihex format.
+ Step 3: When the programming has finished press RESET without holding down S5 to run
+         the program. 
+
+
+
