@@ -18,6 +18,6 @@ float getAnalogIn(EBUanalogIn *packet, int channel){
 	
 	uint16_t intValue = packet->channel[channel];
 	
-	float value = ((intValue/4095) * 5);
+	float value = (((float)intValue/4095) * 5);
 	return value;
 }
