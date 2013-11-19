@@ -29,6 +29,10 @@ void usart_putstring(char* data, unsigned char length);
 char buffer_x[17];
 char buffer_y[17];
 char buffer_z[17];
+char adc_x_hi;
+char adc_x_lo;
+char adc_x_hi_buf;
+char adc_x_lo_buf;
 int length_x;
 int length_y;
 int length_z;
@@ -57,6 +61,7 @@ int main(void)
 			if(i ==2){
 				itoa(adc_value,buffer_x,10);
 				length_x = strlen(buffer_x);
+				
 			}
 		}
 	}
@@ -66,19 +71,19 @@ ISR(TIMER1_COMPA_vect){
 //	usart_putstring("Reading channel ",16);
 	//usart_putstring("z",1);
 	//usart_putstring(" : ",3);
-	usart_putstring(buffer_z,length_z);
-	usart_putstring(" ",1);
+	//usart_putstring(buffer_z,length_z);
+	//usart_putstring(" ",1);
 	//usart_putstring("Reading channel ",16);
 	//usart_putstring("z",1);
 	//usart_putstring(" : ",3);
-	usart_putstring(buffer_y,length_y);
-	usart_putstring(" ",1);
+ 	//usart_putstring(buffer_y,length_y);
+// 	usart_putstring(" ",1);
 	//usart_putstring("Reading channel ",16);
 	//usart_putstring("z",1);
 	//usart_putstring(" : ",3);
-	usart_putstring(buffer_x,length_x);
-	usart_send('\r');
-	usart_send('\n');
+//	usart_putstring(buffer_x,length_x);
+	//usart_send('\r');
+	//usart_send('\n');
 }
 
 //All this should be put in another file, like init.c
