@@ -29,8 +29,8 @@ void usart_putstring(char* data, unsigned char length);
 char buffer_x[17];
 char buffer_y[17];
 char buffer_z[17];
-char adc_x_hi;
-char adc_x_lo;
+uint8_t adc_x_hi;
+uint8_t adc_x_lo;
 char adc_x_hi_buf;
 char adc_x_lo_buf;
 int length_x;
@@ -61,7 +61,8 @@ int main(void)
 			if(i ==2){
 				itoa(adc_value,buffer_x,10);
 				length_x = strlen(buffer_x);
-				
+				adc_x_hi = (uint8_t)(adc_value>>8);
+				adc_x_lo = (uint8_t)adc_value;
 			}
 		}
 	}
@@ -81,9 +82,12 @@ ISR(TIMER1_COMPA_vect){
 	//usart_putstring("Reading channel ",16);
 	//usart_putstring("z",1);
 	//usart_putstring(" : ",3);
-//	usart_putstring(buffer_x,length_x);
+	//usart_putstring(buffer_x,length_x);
 	//usart_send('\r');
-	//usart_send('\n');
+	
+	//usart_send(adc_x_hi);
+	usart_send(adc_x_lo);
+	usart_send('\n');
 }
 
 //All this should be put in another file, like init.c
