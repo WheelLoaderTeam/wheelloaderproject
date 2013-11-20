@@ -1,0 +1,9 @@
+all: clean onBoardControl
+
+onBoardControl: EBU_packets
+	gcc -std=c99 -o onBoardControl onBoardControl.c
+
+
+
+clean:
+	rm -rf *.o onBoardControl
