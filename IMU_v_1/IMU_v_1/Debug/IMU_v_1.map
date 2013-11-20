@@ -48,6 +48,8 @@ Discarded input sections
  .bss           0x00000000        0x0 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51/crtcan128.o
  .text          0x00000000        0x0 IMU_v_1.o
  .bss           0x00000000        0x0 IMU_v_1.o
+ .text.usart_putstring
+                0x00000000       0x2a IMU_v_1.o
  .text          0x00000000        0x0 init.o
  .bss           0x00000000        0x0 init.o
  .text.init_ports
@@ -255,7 +257,7 @@ LOAD c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr
 .rela.plt
  *(.rela.plt)
 
-.text           0x00000000      0x36e
+.text           0x00000000      0x322
  *(.vectors)
  .vectors       0x00000000       0x94 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51/crtcan128.o
                 0x00000000                __vector_default
@@ -355,37 +357,34 @@ LOAD c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr
  .text.usart_init
                 0x000000fe       0x16 IMU_v_1.o
                 0x000000fe                usart_init
- .text.main     0x00000114       0xf0 IMU_v_1.o
+ .text.main     0x00000114       0xcc IMU_v_1.o
                 0x00000114                main
  .text.usart_send
-                0x00000204       0x10 IMU_v_1.o
-                0x00000204                usart_send
- .text.usart_putstring
-                0x00000214       0x28 IMU_v_1.o
-                0x00000214                usart_putstring
+                0x000001e0       0x10 IMU_v_1.o
+                0x000001e0                usart_send
  .text.__vector_12
-                0x0000023c       0x58 IMU_v_1.o
-                0x0000023c                __vector_12
+                0x000001f0       0x58 IMU_v_1.o
+                0x000001f0                __vector_12
  .text.init_ADC
-                0x00000294       0x2e init.o
-                0x00000294                init_ADC
+                0x00000248       0x2e init.o
+                0x00000248                init_ADC
  .text.init_timer
-                0x000002c2       0x22 init.o
-                0x000002c2                init_timer
+                0x00000276       0x22 init.o
+                0x00000276                init_timer
  .text.avr-libc
-                0x000002e4       0x3e c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(itoa.o)
-                0x000002e4                itoa
+                0x00000298       0x3e c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(itoa.o)
+                0x00000298                itoa
  .text.avr-libc
-                0x00000322       0x20 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(strrev.o)
-                0x00000322                strrev
+                0x000002d6       0x20 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(strrev.o)
+                0x000002d6                strrev
  .text.libgcc.div
-                0x00000342       0x28 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avr51\libgcc.a(_udivmodhi4.o)
-                0x00000342                __udivmodhi4
-                0x0000036a                . = ALIGN (0x2)
+                0x000002f6       0x28 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avr51\libgcc.a(_udivmodhi4.o)
+                0x000002f6                __udivmodhi4
+                0x0000031e                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x0000036a        0x0 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avr51\libgcc.a(_exit.o)
-                0x0000036a                _exit
-                0x0000036a                exit
+ .fini9         0x0000031e        0x0 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avr51\libgcc.a(_exit.o)
+                0x0000031e                _exit
+                0x0000031e                exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -404,11 +403,11 @@ LOAD c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x0000036a        0x4 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avr51\libgcc.a(_exit.o)
+ .fini0         0x0000031e        0x4 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avr51\libgcc.a(_exit.o)
  *(.fini0)
-                0x0000036e                _etext = .
+                0x00000322                _etext = .
 
-.data           0x00800100        0x6 load address 0x0000036e
+.data           0x00800100        0x6 load address 0x00000322
                 0x00800100                PROVIDE (__data_start, .)
  *(.data)
  .data          0x00800100        0x0 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51/crtcan128.o
@@ -457,8 +456,8 @@ LOAD c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr
                 0x00800133                length_x
                 0x00800135                buffer_y
                 0x00800146                PROVIDE (__bss_end, .)
-                0x0000036e                __data_load_start = LOADADDR (.data)
-                0x00000374                __data_load_end = (__data_load_start + SIZEOF (.data))
+                0x00000322                __data_load_start = LOADADDR (.data)
+                0x00000328                __data_load_end = (__data_load_start + SIZEOF (.data))
 
 .noinit         0x00800146        0x0
                 0x00800146                PROVIDE (__noinit_start, .)
@@ -555,15 +554,15 @@ LOAD c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x00000000      0xd60
+.debug_info     0x00000000      0xd39
  *(.debug_info)
- .debug_info    0x00000000      0x396 IMU_v_1.o
- .debug_info    0x00000396      0x1ec init.o
- .debug_info    0x00000582      0x171 spi.o
- .debug_info    0x000006f3      0x1d7 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(fdevopen.o)
- .debug_info    0x000008ca      0x14e c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(iob.o)
- .debug_info    0x00000a18      0x10b c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(calloc.o)
- .debug_info    0x00000b23      0x23d c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(malloc.o)
+ .debug_info    0x00000000      0x36f IMU_v_1.o
+ .debug_info    0x0000036f      0x1ec init.o
+ .debug_info    0x0000055b      0x171 spi.o
+ .debug_info    0x000006cc      0x1d7 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(fdevopen.o)
+ .debug_info    0x000008a3      0x14e c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(iob.o)
+ .debug_info    0x000009f1      0x10b c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(calloc.o)
+ .debug_info    0x00000afc      0x23d c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(malloc.o)
  *(.gnu.linkonce.wi.*)
 
 .debug_abbrev   0x00000000      0x728
@@ -576,15 +575,15 @@ LOAD c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr
  .debug_abbrev  0x00000564       0xcb c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(calloc.o)
  .debug_abbrev  0x0000062f       0xf9 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(malloc.o)
 
-.debug_line     0x00000000      0xbab
+.debug_line     0x00000000      0xba5
  *(.debug_line)
- .debug_line    0x00000000      0x241 IMU_v_1.o
- .debug_line    0x00000241      0x181 init.o
- .debug_line    0x000003c2      0x1b8 spi.o
- .debug_line    0x0000057a      0x1b3 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(fdevopen.o)
- .debug_line    0x0000072d       0xeb c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(iob.o)
- .debug_line    0x00000818      0x185 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(calloc.o)
- .debug_line    0x0000099d      0x20e c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(malloc.o)
+ .debug_line    0x00000000      0x23b IMU_v_1.o
+ .debug_line    0x0000023b      0x181 init.o
+ .debug_line    0x000003bc      0x1b8 spi.o
+ .debug_line    0x00000574      0x1b3 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(fdevopen.o)
+ .debug_line    0x00000727       0xeb c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(iob.o)
+ .debug_line    0x00000812      0x185 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(calloc.o)
+ .debug_line    0x00000997      0x20e c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(malloc.o)
 
 .debug_frame    0x00000000      0x260
  *(.debug_frame)
@@ -595,21 +594,21 @@ LOAD c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr
  .debug_frame   0x000001c0       0x38 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(calloc.o)
  .debug_frame   0x000001f8       0x68 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(malloc.o)
 
-.debug_str      0x00000000      0x4c1
+.debug_str      0x00000000      0x48b
  *(.debug_str)
- .debug_str     0x00000000      0x198 IMU_v_1.o
-                                0x1d6 (size before relaxing)
- .debug_str     0x00000198       0x92 init.o
+ .debug_str     0x00000000      0x19b IMU_v_1.o
+                                0x1d9 (size before relaxing)
+ .debug_str     0x0000019b       0x59 init.o
                                 0x138 (size before relaxing)
- .debug_str     0x0000022a       0x5a spi.o
+ .debug_str     0x000001f4       0x5a spi.o
                                 0x135 (size before relaxing)
- .debug_str     0x00000284       0x79 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(fdevopen.o)
+ .debug_str     0x0000024e       0x79 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(fdevopen.o)
                                 0x120 (size before relaxing)
- .debug_str     0x000002fd       0x60 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(iob.o)
+ .debug_str     0x000002c7       0x60 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(iob.o)
                                 0x10d (size before relaxing)
- .debug_str     0x0000035d       0x77 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(calloc.o)
+ .debug_str     0x00000327       0x77 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(calloc.o)
                                  0xb5 (size before relaxing)
- .debug_str     0x000003d4       0xed c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(malloc.o)
+ .debug_str     0x0000039e       0xed c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/../../../../avr/lib/avr51\libc.a(malloc.o)
                                 0x17c (size before relaxing)
 
 .debug_loc      0x00000000      0x960
