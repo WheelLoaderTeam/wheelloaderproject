@@ -84,9 +84,10 @@ ISR(TIMER1_COMPA_vect){
 	//usart_putstring(" : ",3);
 	//usart_putstring(buffer_x,length_x);
 	//usart_send('\r');
-	//usart_send('\n');
-	usart_send(adc_x_hi);
+	
+	//usart_send(adc_x_hi);
 	usart_send(adc_x_lo);
+	usart_send('\n');
 }
 
 //All this should be put in another file, like init.c
