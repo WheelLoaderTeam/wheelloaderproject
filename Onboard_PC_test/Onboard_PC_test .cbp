@@ -2,22 +2,21 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="OryxSim_PC" />
+		<Option title="Onboard_PC_test " />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin/Debug/OryxSim_PC" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Debug/Onboard_PC_test " prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
-					<Add directory="../../wheelloaderproject" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="bin/Release/OryxSim_PC" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Release/Onboard_PC_test " prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -35,7 +34,7 @@
 		<Unit filename="../net/socket.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="SensorPacketHandling.c">
+		<Unit filename="client.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Extensions>
