@@ -1,7 +1,12 @@
+#define _XOPEN_SOURCE 600
+
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include <sys/time.h>
+#include <time.h>
 
 #include "EBUrelays.h"
 #include "EBUanalogIn.h"
@@ -11,7 +16,10 @@
 
 
 int main(void){
-
+	struct timespec t;
+	t.tv_sec = 0;
+	t.tv_nsec = 30000000;
+	
 	//setup sockets
 	struct sockaddr_in relays_socket, analog_in_socket, analog_out_socket, digital_in_socket, digital_out_socket;
 	socklen_t slen = sizeof(struct sockaddr_in);	
@@ -33,11 +41,8 @@ int main(void){
 	
 	
 	//wait before sending. this is a workaround to a bug in the EBU
-	//TODO: Remove busy wait loop when the EBU bug is fixed.
-	volatile int i = 0;
-	while(i<1000000){
-		i++;
-	}
+	//TODO: Remove nanosleep and timespec t when the EBU bug is fixed.
+	nanosleep(&t, NULL);
 	//send relay packet
 	sendto(s_relays, (char*)&relays, sizeof(EBUrelays), 0, (struct sockaddr*) &relays_socket, slen);
 	
@@ -54,17 +59,14 @@ int main(void){
 		float value;
 		for(int i=0; i<24; i++){
 			value = getAnalogIn(&analogIn, i);
-			//setAnalogOut(&analogOut, i, value );
-			setAnalogOut(&analogOut, i, 2.5 );
+			setAnalogOut(&analogOut, i, value );
+			//setAnalogOut(&analogOut, i, 2.5 );
 			printf("A%d= %f\n", (i+1), value);
 		}
 		
 		//wait before sending. this is a workaround to a bug in the EBU
-		//TODO: Remove busy wait loop when the EBU bug is fixed.
-		i = 0;
-		while(i<1000000){
-			i++;
-		}
+		//TODO: Remove nanosleep and timespec t when the EBU bug is fixed.
+		nanosleep(&t, NULL);
 		//send analog out packet
 		sendto(s_analog_out, (char*)&analogOut, sizeof(EBUanalogOut), 0, (struct sockaddr*) &analog_out_socket, slen);
 	}
