@@ -14,6 +14,10 @@ void init_ports(void)	{
 	DDRE = 0xFE; //Set not used as outputs, Rx,Tx correctly..
 	DDRF = 0x08; //JTAG and ADC 
 	DDRG = 0xFF; //Not used
+	
+	PORTB |= (1<<DDB6);
+	PORTB |= (1<<DDB5);
+	PORTB |= (1<<DDB4);
 }
 /*! Larsmarks code */
 void init_usb_usart(unsigned char baudrate) {
