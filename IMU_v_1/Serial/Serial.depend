@@ -1,0 +1,13 @@
+# depslib dependency file v1.0
+1385049033 source:/home/jesper/Documents/Serial/main.c
+	<fcntl.h>
+	<termios.h>
+	<termio.h>
+	<stdio.h>
+	<unistd.h>
+	<string.h>
+	<err.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<linux/serial.h>
+

@@ -1,0 +1,1 @@
+You must run codeblocks as root (open via terminal with: sudo codeblocks) or otherwise make sure that is has permissions to open ports and whatever. Otherwise you will not be able to read from serial (and miiiight spend several hours trying to get it to work -.-).
