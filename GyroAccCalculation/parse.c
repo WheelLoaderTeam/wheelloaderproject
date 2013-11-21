@@ -1,16 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <float.h> 				//DBL_MAX
-#include <math.h> 				//arcsin
+#include <math.h> 				//asin
 #define ss_checkfrequency 5		//ss = StationaryState
 #define ss_deltathreshold 0.50
 #define ss_numrecords	  200   //At 100 hz = 2 seconds of data
+
 int parseFile(char *filename);
+int checkIfSS(int buf_pos);
+void accPitchRoll(int buf_pos);
+void gyroBias(int buf_pos);
 
 int main(int argc, char *argv[]) {
 	int buffer_position;
     buffer_position = parseFile(argv[1]);
-	checkIfSS(buffer_position);
+	//checkIfSS(buffer_position);
+	//accPitchRoll(buffer_position);
+	gyroBias(buffer_position);
+
+	return 0;
 }
 
 double *x_acc, *y_acc, *z_acc, *x_head, *y_head, *z_head;
@@ -60,6 +68,10 @@ int parseFile(char *filename) {
 	return n-2;
 }
 
+/*
+checkIfSS(int buf_pos)
+This function checks if the tractor is in a stationary state. A preset number of latest records(ss_numrecords) are read out of the accelerometer buffer. If each accelerometer axis shows a delta smaller than ss_deltathreshold , then the tractor is assumed to be stationary, and the function returns 1. If any accelerometer delta exceeds ss_deltathreshold, the function returns 0. The algorithm for determining delta is simply maximum - minimum.
+*/
 int checkIfSS(int buf_pos){
 	int i = ss_numrecords;
 	double x_min = DBL_MAX, x_max = -1 * DBL_MAX;
@@ -78,7 +90,7 @@ int checkIfSS(int buf_pos){
 		if(z_acc[buf_pos] > z_max){z_max = z_acc[buf_pos];}
 		if(z_acc[buf_pos] < z_min){z_min = z_acc[buf_pos];}
 		buf_pos--;
-	}while(i--)
+	}while(i--);
 	//test
 	printf("x_delta = %lf, y_delta = %lf, z_delta = %lf \n", x_max - x_min, y_max - y_min, z_max - z_min);
 
@@ -94,31 +106,78 @@ int checkIfSS(int buf_pos){
 	}
 }
 
-//This function calculates pitch(y-rotation) and roll(x-rotation) based on the static acceleration.
-//These values are then sent to the simulator, and also used as the "zero" point for the gyro data
-//which prevents drift error.
-
+/*
+accPitchRoll(int buf_pos)
+This function calculates pitch(y-rotation) and roll(x-rotation) based on the static acceleration.
+These values are used to "reset" the simulator, and erase any accumulated drift.
+The gyro data sent is always relative to the latest pitch/roll data, again to prevent drift error.
+Called when the system is determined to be at rest. 
+*/
 void accPitchRoll(int buf_pos){
 	int i = ss_numrecords;
-	double x_avg = 0, y_avg = 0;
+	double x_accavg = 0, y_accavg = 0;
 	double pitch_rad = 0, roll_rad = 0;
 
 	do{
 		if(buf_pos == 0){
 			//wrap around to correct position
 		}
-		x_avg+= x_acc[buf_pos];
-		y_avg+= y_acc[buf_pos];
+		x_accavg+= x_acc[buf_pos];
+		y_accavg+= y_acc[buf_pos];
 		buf_pos--;
-	}while(i--)
+	}while(i--);
 
-	x_avg = (x_avg/ss_numrecords);
-	y_avg = (y_avg/ss_numrecords);
-	pitch_rad = asin (y_avg);
-	roll_rad  = asin (x_avg);
+	x_accavg = (x_accavg/ss_numrecords);
+	y_accavg = (y_accavg/ss_numrecords);
+	pitch_rad = asin (y_accavg);
+	roll_rad  = asin (x_accavg);
+	//Test
+	printf("Angle in degrees of pitch: %lf, and roll: %lf\n x_accavg: %lf y_accavg: %lf\n", 
+			(pitch_rad * (180/3.14159)), (roll_rad * (180/3.14159)), x_accavg, y_accavg);
+}
+
+/*
+gyroBias()
+This function calculates the bias of the gyros. Called if the system is determined to be at rest. 
+*/
+
+void gyroBias(int buf_pos){
+	int i = ss_numrecords;
+	double x_gyrbias = 0, y_gyrbias = 0, z_gyrbias = 0;
+
+	do{
+		if(buf_pos == 0){
+			//wrap around to correct position
+		}
+		x_gyrbias+= x_head[buf_pos];
+		y_gyrbias+= y_head[buf_pos];
+		z_gyrbias+= z_head[buf_pos];
+		buf_pos--;
+	}while(i--);
+
+	x_gyrbias = x_gyrbias/ss_numrecords;
+	y_gyrbias = y_gyrbias/ss_numrecords;
+	z_gyrbias = z_gyrbias/ss_numrecords;
+	//Test
+	printf("X Gyro bias: %lf, Y Gyro bias: %lf, Z Gyro bias: %lf\n", x_gyrbias, y_gyrbias, z_gyrbias);
+
+}
+
+/*
+sendGyroData()
+This function subtracts the gyro bias, and sends the data with respect to the last calibrated pitch and roll.
+*/
+
+void sendGyroData(){
+
 }
 
 
+/*
+sendAccData()
+This function takes the raw acceleration data, multiplies it by a constant and sends it to the simulator
+*/
 
+void sendAccData(){
 
-
+}
