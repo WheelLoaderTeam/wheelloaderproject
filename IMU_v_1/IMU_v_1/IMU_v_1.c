@@ -68,7 +68,7 @@ int main(void)
 	}
 }
 
-char a = 0;
+//char a = 0;
 
 ISR(TIMER1_COMPA_vect){
 //	usart_putstring("Reading channel ",16);
@@ -87,16 +87,16 @@ ISR(TIMER1_COMPA_vect){
 	//usart_putstring(buffer_x,length_x);
 	//usart_send('\r');
 	
-	/*
+	
 	adc_value = read_adc(1);
 	adc_x_hi = (uint8_t)(adc_value>>8);
 	adc_x_lo = (uint8_t)adc_value;
 	usart_send(adc_x_hi);
 	usart_send(adc_x_lo);
-	usart_send(-1);
-	*/
-	usart_send(a);
-	a++;
+	usart_send('\n');
+
+	//usart_send(a);
+	//a++;
 }
 
 //All this should be put in another file, like init.c
