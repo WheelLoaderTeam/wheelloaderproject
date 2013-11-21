@@ -1,34 +1,46 @@
 
 #include "onBoardControl.h"
 
+#define LONG_TIMEOUT {2, 0}
+#define SHORT_TIMEOUT {0, 100000000}
+
 int main(void){
-//	setupEBU();
 	//setup sockets to send packets to the EBU
+	//send stop packet
+	//send relay packet
 	
 	//initServerSocket to receve packets from simulator
+	//set long timeout
 	
-	//wait for packet from simulator, indefinate timeout
+	while(1){
+		//wait for packet from simulator
+		
+		//if timeout
+			//if buffer empty
+				//send stop packet
+				//set long timeout
+			//else buffer not empty
+				//send packet in buffer
+				//clear buffer
+				//set long timeout
+		//else if incomming packet
+			//if buffer empty
+				//if (time since last packet sent > short timeout)
+					//send packet imediatly
+					//set long timeout
+				//else (time since last packet sent < short timeout)
+					//put packet in buffer
+					//set remaining time of short timeout
+			//else buffer not empty
+				//determine witch packet should remain in buffer
+				//set remaining time of short timeout
+	}
+	return 1;
+}
+
+int commandPacket2EBUpacket(CommandPacket* commandPacket, EBUanalogOut* analogEBUpacket){
+	
 	
 	
 	return 1;
 }
-
-void setupEBU(){
-	struct sockaddr_in relays_socket;
-	socklen_t slen = sizeof(struct sockaddr_in);	
-	int s_relays;
-	
-	initClientSocket(25400, &s_relays, "10.0.0.2", &relays_socket);	
-	
-	//building relay packet
-	EBUrelays relays = newEBUrelays();
-	setRelay(&relays, R_A9, 1);
-	setRelay(&relays, R_A10, 1);
-	setRelay(&relays, R_A11, 1);
-	setRelay(&relays, R_A12, 1);
-	
-	//send relay packet
-	sendto(s_relays, (char*)&relays, sizeof(EBUrelays), 0, (struct sockaddr*) &relays_socket, slen);
-}
-
-

@@ -37,8 +37,7 @@ SUBDIRS :=
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
 ../IMU_v_1.c \
-../init.c \
-../spi.c
+../init.c
 
 
 PREPROCESSING_SRCS += 
@@ -49,23 +48,19 @@ ASM_SRCS +=
 
 OBJS +=  \
 IMU_v_1.o \
-init.o \
-spi.o
+init.o
 
 OBJS_AS_ARGS +=  \
 IMU_v_1.o \
-init.o \
-spi.o
+init.o
 
 C_DEPS +=  \
 IMU_v_1.d \
-init.d \
-spi.d
+init.d
 
 C_DEPS_AS_ARGS +=  \
 IMU_v_1.d \
-init.d \
-spi.d
+init.d
 
 OUTPUT_FILE_PATH +=IMU_v_1.elf
 
@@ -78,8 +73,6 @@ OUTPUT_FILE_DEP:= ./makedep.mk
 LIB_DEP+= 
 
 # AVR32/GNU C Compiler
-
-
 
 
 

@@ -40,12 +40,12 @@ int length_z;
 int main(void)
 {
 	
-	usart_init(1);
+	usart_init(0);
 	init_ADC();
 	init_timer();
 
 	sei();
-    while(1)
+    while(1);
     {
 		//i = 0 is z-axis, i = 1 is y-axis, i = 2 is x-axis
 		for(i=0; i<3; i++){
@@ -68,6 +68,8 @@ int main(void)
 	}
 }
 
+//char a = 0;
+
 ISR(TIMER1_COMPA_vect){
 //	usart_putstring("Reading channel ",16);
 	//usart_putstring("z",1);
@@ -85,9 +87,16 @@ ISR(TIMER1_COMPA_vect){
 	//usart_putstring(buffer_x,length_x);
 	//usart_send('\r');
 	
-	//usart_send(adc_x_hi);
+	
+	adc_value = read_adc(1);
+	adc_x_hi = (uint8_t)(adc_value>>8);
+	adc_x_lo = (uint8_t)adc_value;
+	usart_send(adc_x_hi);
 	usart_send(adc_x_lo);
 	usart_send('\n');
+
+	//usart_send(a);
+	//a++;
 }
 
 //All this should be put in another file, like init.c
