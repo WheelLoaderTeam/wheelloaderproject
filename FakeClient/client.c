@@ -23,7 +23,7 @@ int main(void)
 {
     struct sockaddr_in si_other;
     int s, slen=sizeof(si_other);
-    float packet [PACKETLEN] = {3.145, 4.589, 9.57, 50.69, 24.56, 42.32, 74.96, 38.06};
+    float packet [PACKETLEN] = {3, PACKETLEN, 9.57, 50.69, 24.56, 42.32, 74.96, 38.06};
 
     if ( (s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
@@ -49,6 +49,7 @@ int main(void)
         {
             die("sendto()");
         }
+        else
         usleep(10000);
 
 

@@ -94,12 +94,14 @@ int main(int argc, char *argv[]){
         }
         FD_ZERO(&rfds);
         FD_SET(s_onBoard, &rfds);
+        if (FD_ISSET(s_onBoard, &rfds)) printf("rfds set");
 
         while(1){
 
            //is it a problem when the packets are received at 50Hz?
 
             if(mode == 1 ){
+            if (FD_ISSET(s_onBoard, &rfds)) printf("rfds set\n");
                 // date the start of the recvfrom function
                 clock_gettime(CLOCK_REALTIME, &spec);
 
@@ -109,8 +111,13 @@ int main(int argc, char *argv[]){
                 if ((recv_len = recvfrom(s_onBoard, &data, LEN_BUF_SENSOR, 0, (struct sockaddr *) &outsock, (socklen_t*) &slen)) == -1){
                     die("recvfrom()");
                 }
+                printf("packet : %d\t%d\t",data.id,data.psize);
+                int i;
+                for (i=0; i<LEN_BUF_SENSOR-2; i++)
+                {
+                    printf("%f\t",data.values[i]);
+                }
                 // save the packet into old buf
-                printf("packet recceived \n");
                 oldData[1]= oldData[0];
                 oldData[0]= data;
                 // date the endof the recvfrom function qnd calcul how many time it took to receive the packet
@@ -158,6 +165,7 @@ int main(int argc, char *argv[]){
 
                         s  = spec.tv_sec;
                         ms = round(spec.tv_nsec / 1.0e6);
+                        if (FD_ISSET(s_onBoard, &rfds)) printf("rfds set");
                         retval= select(1,&rfds,NULL,NULL, &tv);
 
                         if (retval == -1)
