@@ -5,27 +5,38 @@
 #define ss_checkfrequency 5		//ss = StationaryState
 #define ss_deltathreshold 0.50
 #define ss_numrecords	  200   //At 100 hz = 2 seconds of data
+#define end_rcv_buf    	  1024	//Adjust depending on size of buffer
+#define begin_rcv_buf     0
+#define end_snd_buf       1024	
+#define begin_rcv_buf     0
+
 
 int parseFile(char *filename);
-int checkIfSS(int buf_pos);
-void accPitchRoll(int buf_pos);
-void gyroBias(int buf_pos);
+int checkIfSS(int rcv_buf_pos);
+void accPitchRoll(int rcv_buf_pos);
+void gyroBias(int rcv_buf_pos);
+void loadGyroSendBuffer(char calibrated, int snd_buf_pos, int rcv_buf_pos, double pitch, double roll, double x_bias, double y_bias, double z_bias);
+void init();
+void sendAccData();
 
 int main(int argc, char *argv[]) {
-	int buffer_position;
-    buffer_position = parseFile(argv[1]);
-	//checkIfSS(buffer_position);
-	//accPitchRoll(buffer_position);
-	gyroBias(buffer_position);
+	int rcv_buf_pos;
+	int snd_buf_pos;
+
+    rcv_buf_pos = parseFile(argv[1]);
+	//checkIfSS(rcv_buf_pos);
+	//accPitchRoll(rcv_buf_pos);
+	gyroBias(rcv_buf_pos);
 
 	return 0;
 }
 
-double *x_acc, *y_acc, *z_acc, *x_head, *y_head, *z_head;
+double *x_acc_rcv, *y_acc_rcv, *z_acc_rcv, *x_head_rcv, *y_head_rcv, *z_head_rcv;
+double *x_acc_snd, *y_acc_snd, *z_acc_snd, *x_head_snd, *y_head_snd, *z_head_snd;
 
 int parseFile(char *filename) {
     char buf[1024];
-    char *ptr;
+    char *rcv_ptr;
     int count, i, n = 0;
     FILE *f = fopen(filename,"r");
     
@@ -36,12 +47,18 @@ int parseFile(char *filename) {
     rewind(f);
     
     //allocate memory
-    x_acc = calloc(n-1,sizeof(double));
-    y_acc = calloc(n-1,sizeof(double));
-    z_acc = calloc(n-1,sizeof(double));
-    x_head = calloc(n-1,sizeof(double));
-    y_head = calloc(n-1,sizeof(double));
-    z_head = calloc(n-1,sizeof(double));
+    x_acc_rcv = calloc(n-1,sizeof(double));
+    y_acc_rcv = calloc(n-1,sizeof(double));
+    z_acc_rcv = calloc(n-1,sizeof(double));
+    x_head_rcv = calloc(n-1,sizeof(double));
+    y_head_rcv = calloc(n-1,sizeof(double));
+    z_head_rcv = calloc(n-1,sizeof(double));
+    x_acc_snd = calloc(n-1,sizeof(double));
+    y_acc_snd = calloc(n-1,sizeof(double));
+    z_acc_snd = calloc(n-1,sizeof(double));
+    x_head_snd = calloc(n-1,sizeof(double));
+    y_head_snd = calloc(n-1,sizeof(double));
+    z_head_snd = calloc(n-1,sizeof(double));
     
     //ignore first line
     fgets(buf,1024,f);
@@ -49,21 +66,21 @@ int parseFile(char *filename) {
     //read the data
     for (i = 0; i<n-1; i++) {
         fgets(buf,1024,f);
-        ptr = buf;
+        rcv_ptr = buf;
         count = 0;
         while (count < 11) {
-            if (*ptr == ',')
+            if (*rcv_ptr == ',')
                 count++;
-            ptr++;
+            rcv_ptr++;
         }
-        sscanf(ptr,"%lf,%lf,%lf,%lf,%lf,%lf,",&x_acc[i],&y_acc[i],&z_acc[i],
-               &x_head[i],&y_head[i],&z_head[i]);
+        sscanf(rcv_ptr,"%lf,%lf,%lf,%lf,%lf,%lf,",&x_acc_rcv[i],&y_acc_rcv[i],&z_acc_rcv[i],
+               &x_head_rcv[i],&y_head_rcv[i],&z_head_rcv[i]);
     }
     
     /*//test
     for (i = 0; i<n-1; i++) {
-        printf("%lf,%lf,%lf,%lf,%lf,%lf\n",x_acc[i],y_acc[i],z_acc[i],
-               x_head[i],y_head[i],z_head[i]);
+        printf("%lf,%lf,%lf,%lf,%lf,%lf\n",x_acc_rcv[i],y_acc_rcv[i],z_acc_rcv[i],
+               x_head_rcv[i],y_head_rcv[i],z_head_rcv[i]);
     }*/
 	return n-2;
 }
@@ -72,24 +89,24 @@ int parseFile(char *filename) {
 checkIfSS(int buf_pos)
 This function checks if the tractor is in a stationary state. A preset number of latest records(ss_numrecords) are read out of the accelerometer buffer. If each accelerometer axis shows a delta smaller than ss_deltathreshold , then the tractor is assumed to be stationary, and the function returns 1. If any accelerometer delta exceeds ss_deltathreshold, the function returns 0. The algorithm for determining delta is simply maximum - minimum.
 */
-int checkIfSS(int buf_pos){
+int checkIfSS(int rcv_buf_pos){
 	int i = ss_numrecords;
 	double x_min = DBL_MAX, x_max = -1 * DBL_MAX;
 	double y_min = DBL_MAX, y_max = -1 * DBL_MAX;
 	double z_min = DBL_MAX, z_max = -1 * DBL_MAX;
 
-	//printf("Buf Pos = %d\n", buffer_position);
+	//printf("Buf Pos = %d\n", rcv_buf_pos);
 	do{
-		if(buf_pos == 0){
+		if(rcv_buf_pos == begin_rcv_buf){
 			//wrap around to correct position
 		}
-		if(x_acc[buf_pos] > x_max){x_max = x_acc[buf_pos];}
-		if(x_acc[buf_pos] < x_min){x_min = x_acc[buf_pos];}
-		if(y_acc[buf_pos] > y_max){y_max = y_acc[buf_pos];}
-		if(y_acc[buf_pos] < y_min){y_min = y_acc[buf_pos];}
-		if(z_acc[buf_pos] > z_max){z_max = z_acc[buf_pos];}
-		if(z_acc[buf_pos] < z_min){z_min = z_acc[buf_pos];}
-		buf_pos--;
+		if(x_acc_rcv[rcv_buf_pos] > x_max){x_max = x_acc_rcv[rcv_buf_pos];}
+		if(x_acc_rcv[rcv_buf_pos] < x_min){x_min = x_acc_rcv[rcv_buf_pos];}
+		if(y_acc_rcv[rcv_buf_pos] > y_max){y_max = y_acc_rcv[rcv_buf_pos];}
+		if(y_acc_rcv[rcv_buf_pos] < y_min){y_min = y_acc_rcv[rcv_buf_pos];}
+		if(z_acc_rcv[rcv_buf_pos] > z_max){z_max = z_acc_rcv[rcv_buf_pos];}
+		if(z_acc_rcv[rcv_buf_pos] < z_min){z_min = z_acc_rcv[rcv_buf_pos];}
+		rcv_buf_pos--;
 	}while(i--);
 	//test
 	printf("x_delta = %lf, y_delta = %lf, z_delta = %lf \n", x_max - x_min, y_max - y_min, z_max - z_min);
@@ -107,33 +124,33 @@ int checkIfSS(int buf_pos){
 }
 
 /*
-accPitchRoll(int buf_pos)
+accPitchRoll(int rcv_buf_pos)
 This function calculates pitch(y-rotation) and roll(x-rotation) based on the static acceleration.
 These values are used to "reset" the simulator, and erase any accumulated drift.
 The gyro data sent is always relative to the latest pitch/roll data, again to prevent drift error.
 Called when the system is determined to be at rest. 
 */
-void accPitchRoll(int buf_pos){
+void accPitchRoll(int rcv_buf_pos){
 	int i = ss_numrecords;
-	double x_accavg = 0, y_accavg = 0;
+	double x_acc_rcvavg = 0, y_acc_rcvavg = 0;
 	double pitch_rad = 0, roll_rad = 0;
 
 	do{
-		if(buf_pos == 0){
+		if(rcv_buf_pos == begin_rcv_buf){
 			//wrap around to correct position
 		}
-		x_accavg+= x_acc[buf_pos];
-		y_accavg+= y_acc[buf_pos];
-		buf_pos--;
+		x_acc_rcvavg+= x_acc_rcv[rcv_buf_pos];
+		y_acc_rcvavg+= y_acc_rcv[rcv_buf_pos];
+		rcv_buf_pos--;
 	}while(i--);
 
-	x_accavg = (x_accavg/ss_numrecords);
-	y_accavg = (y_accavg/ss_numrecords);
-	pitch_rad = asin (y_accavg);
-	roll_rad  = asin (x_accavg);
+	x_acc_rcvavg = (x_acc_rcvavg/ss_numrecords);
+	y_acc_rcvavg = (y_acc_rcvavg/ss_numrecords);
+	pitch_rad = asin (y_acc_rcvavg);
+	roll_rad  = asin (x_acc_rcvavg);
 	//Test
-	printf("Angle in degrees of pitch: %lf, and roll: %lf\n x_accavg: %lf y_accavg: %lf\n", 
-			(pitch_rad * (180/3.14159)), (roll_rad * (180/3.14159)), x_accavg, y_accavg);
+	printf("Angle in degrees of pitch: %lf, and roll: %lf\n x_acc_rcvavg: %lf y_acc_rcvavg: %lf\n", 
+			(pitch_rad * (180/3.14159)), (roll_rad * (180/3.14159)), x_acc_rcvavg, y_acc_rcvavg);
 }
 
 /*
@@ -141,18 +158,18 @@ gyroBias()
 This function calculates the bias of the gyros. Called if the system is determined to be at rest. 
 */
 
-void gyroBias(int buf_pos){
+void gyroBias(int rcv_buf_pos){
 	int i = ss_numrecords;
 	double x_gyrbias = 0, y_gyrbias = 0, z_gyrbias = 0;
 
 	do{
-		if(buf_pos == 0){
+		if(rcv_buf_pos == begin_rcv_buf){
 			//wrap around to correct position
 		}
-		x_gyrbias+= x_head[buf_pos];
-		y_gyrbias+= y_head[buf_pos];
-		z_gyrbias+= z_head[buf_pos];
-		buf_pos--;
+		x_gyrbias+= x_head_rcv[rcv_buf_pos];
+		y_gyrbias+= y_head_rcv[rcv_buf_pos];
+		z_gyrbias+= z_head_rcv[rcv_buf_pos];
+		rcv_buf_pos--;
 	}while(i--);
 
 	x_gyrbias = x_gyrbias/ss_numrecords;
@@ -168,8 +185,29 @@ sendGyroData()
 This function subtracts the gyro bias, and sends the data with respect to the last calibrated pitch and roll.
 */
 
-void sendGyroData(){
+void loadGyroSendBuffer(char calibrated, int snd_buf_pos, int rcv_buf_pos, double pitch, double roll, double x_bias, double y_bias, double z_bias){
+	if(snd_buf_pos = end_snd_buf){
+		//Wrap buffer around to correct position
+	}
+	if(calibrated){
+		x_head_snd[snd_buf_pos] = roll;
+		y_head_snd[snd_buf_pos] = pitch;
+		z_head_snd[snd_buf_pos] = 0; //Z gyro data unused.
+		snd_buf_pos++;
+	}
+	else{
+		x_head_snd[snd_buf_pos] = (x_head_rcv[rcv_buf_pos] - x_bias) + x_head_snd[snd_buf_pos - 1]; //Must load first snd buffer position with 0, and incrementptr!
+		y_head_snd[snd_buf_pos] = (y_head_rcv[rcv_buf_pos] - y_bias) + y_head_snd[snd_buf_pos - 1];
+		z_head_snd[snd_buf_pos] = 0;
+		snd_buf_pos++;
+	}
+}
 
+void init(){
+	x_head_snd[0] = 0;
+	y_head_snd[0] = 0;
+	z_head_snd[0] = 0;
+	//MUST INITIAIZE RCV_BUF_POS to 1!
 }
 
 

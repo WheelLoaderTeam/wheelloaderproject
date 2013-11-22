@@ -2,24 +2,51 @@
 #include <unistd.h>
 #include <time.h>
 #include <math.h>
-#include "../net/socket.h"
+#include "sensorData.h"
+
 
 
 
 // argv[1] is the frequency parameter to send packet to simulator
 // 1 is normal =100Hz
 // 2 is low = 50Hz
-long sendAndWait (fd_set rfds, int s_out, float* buf, int buflen, int flags, struct sockaddr_in outsock, int slen,
-                        struct timeval tv, int second, int usecond  );
+long sendAndWait (fd_set rfds, int s_out, struct SensorData buf, int buflen, int flags, struct sockaddr_in outsock, int slen,
+                        struct timeval tv, int second, int usecond ) ;
 
 
 int main(int argc, char *argv[]){
 
     struct sockaddr_in insock, outsock ;
-    int s_onBoard, s_sim, recv_len, slen = sizeof(outsock) ;
+    int s_onBoard, s_sim, recv_len, slen = sizeof(struct sockaddr_in) ;
     struct timeval tv;
     int mode;
-    float buf [LEN_BUF_SENSOR];
+    // init of the packets so it doesn't point to nowhere at the beginning of the program
+    SensorData data;
+    data.id = 0;
+    data.psize = LEN_BUF_SENSOR;
+    int i;
+    for (i=0; i<LEN_BUF_SENSOR-2; i++)
+    {
+        data.values[i]=0;
+    }
+//    data = {0,0,0,0,0,0,0,0};
+
+    SensorData oldData[2];
+    oldData[0].id = 0;
+    oldData[0].psize = LEN_BUF_SENSOR;
+
+    for (i=0; i<LEN_BUF_SENSOR-2; i++)
+    {
+        oldData[0].values[i]=0;
+    }
+    oldData[1].id = 0;
+    oldData[1].psize = LEN_BUF_SENSOR;
+
+    for (i=0; i<LEN_BUF_SENSOR-2; i++)
+    {
+        oldData[1].values[i]=0;
+    }
+
     //file descriptor for the input socket
     fd_set rfds;
     //some vqriqble to calcul time
@@ -55,14 +82,13 @@ int main(int argc, char *argv[]){
             break;
         }
         default:
-            printf ("wrong mode. chose 1 2 3 4 \n");
+            printf ("wrong mode. choose 1 2 3 4 \n");
             return 0;
             break;
 
     }
 
-    if ( initServerSocket(8888, &s_onBoard, &insock)==1) //&&
-         //initClientSocket(8888, &s_sim, "127.0.0.1",&outsock)==1 )
+    if ( initServerSocket(8888, &s_onBoard, &insock)==1 && initClientSocket(6666, &s_sim, "127.0.0.1",&outsock)==1 )
         {
             printf ("init success\n");
         }
@@ -79,46 +105,97 @@ int main(int argc, char *argv[]){
 
                 s  = spec.tv_sec;
                 ms = round(spec.tv_nsec / 1.0e6);
-
-                if ((recv_len = recvfrom(s_onBoard, buf, LEN_BUF_SENSOR, 0, (struct sockaddr *) &outsock, (socklen_t*) &slen)) == -1){
+                // TODO what if it receive nothing (set a TIMEOUT)
+                if ((recv_len = recvfrom(s_onBoard, &data, LEN_BUF_SENSOR, 0, (struct sockaddr *) &outsock, (socklen_t*) &slen)) == -1){
                     die("recvfrom()");
                 }
-                // date the end of the recvfrom function qnd calcul how many time it took to receive the packet
+                // save the packet into old buf
+                printf("packet recceived \n");
+                oldData[1]= oldData[0];
+                oldData[0]= data;
+                // date the endof the recvfrom function qnd calcul how many time it took to receive the packet
                 clock_gettime(CLOCK_REALTIME, &spec);
 
                 s  = spec.tv_sec;
                 ms = round(spec.tv_nsec / 1.0e6)-ms;
                 time_to_wait = 10000 - ms;
-
-
-                printf("i'm in mode 1\n");
-                ms = sendAndWait(rfds,s_onBoard, buf, LEN_BUF_SENSOR , 0 , outsock, slen, tv, 0, time_to_wait);
-                if (ms!=-1){
-                    if ((recv_len = recvfrom(s_onBoard, buf, LEN_BUF_SENSOR, 0, (struct sockaddr *) &outsock, (socklen_t*) &slen)) == -1){
-                    die("recvfrom()");
-                    }
-
-                    printf("buf is : ");
+                if (time_to_wait<0)
+                {
+                    printf("TIMEOUT\n");
+                    // if TIMEOUT is reached ze extrapolate with linear approximation from the last two values
+                    data.values[0] = (oldData[0].values[0])+1; // increment the id
                     int i;
-                    for (i =0 ; i<8 ; i++){printf ("\t %f", buf[i] );}
-
-
-                    tv.tv_sec = 0;
-                    tv.tv_usec = ms*1000;
-                    retval= select(1,NULL,NULL,NULL, &tv);
-
-                    if (retval == -1)
-                        perror("select()");
-                    else
+                    for ( i=2; i<8; i++)
                     {
-                    printf("Early packet discarded \n");
+                    data.values[i] = oldData[0].values[i] + oldData[0].values[i] - oldData[1].values[i]; // calcul & assign the extrapolated value to the data we send
                     }
+                    if (sendto(s_sim, &data, (LEN_BUF_SENSOR*sizeof(float)) , 0 , (struct sockaddr *) &outsock, slen)==-1)
+                            {
+                                die("sendto()");
+                            }
+                }
+
+                else {
+                    printf("i'm in mode 1\n");
+                    ms = sendAndWait(rfds,s_onBoard, data, LEN_BUF_SENSOR , 0 , outsock, slen, tv, 0, time_to_wait);
+                    if (ms!=-1){
+                        if ((recv_len = recvfrom(s_onBoard, &data, LEN_BUF_SENSOR, 0, (struct sockaddr *) &outsock, (socklen_t*) &slen)) == -1){
+                        die("recvfrom()");
+                        }
+                        // save the packet into old buf
+                        oldData[1] = oldData[0];
+                        oldData[0] = data;
+
+                        printf("packet is : %d %d", data.id, data.psize);
+                        int i;
+                        for (i =0 ; i<8 ; i++){printf ("\t %f", data.values[i] );}
+
+
+                        tv.tv_sec = 0;
+                        tv.tv_usec = ms*1000;
+                        // get time so if a new packet arrive i can know how many time i have to wait before sending it
+                        clock_gettime(CLOCK_REALTIME, &spec);
+
+                        s  = spec.tv_sec;
+                        ms = round(spec.tv_nsec / 1.0e6);
+                        retval= select(1,&rfds,NULL,NULL, &tv);
+
+                        if (retval == -1)
+                            perror("select()");
+                        // if another packet come I receive it (discarding the previous out of date one) calcul the time
+                        // I have to wait, wait and send the new packet
+                        else if(retval)
+                        {
+                            if ((recv_len = recvfrom(s_onBoard, &data, LEN_BUF_SENSOR, 0, (struct sockaddr *) &outsock, (socklen_t*) &slen)) == -1){
+                                die("recvfrom()");
+                            }
+                            // save the packet into old buf
+                            oldData[1] = oldData[0];
+                            oldData[0] = data;
+
+
+                            clock_gettime(CLOCK_REALTIME, &spec);
+                            s = round(spec.tv_nsec / 1.0e6) - ms;
+                            usleep (tv.tv_usec-(ms*1000));
+                            if (sendto(s_sim, &data, (LEN_BUF_SENSOR*sizeof(float)) , 0 , (struct sockaddr *) &outsock, slen)==-1)
+                            {
+                                die("sendto()");
+                            }
+                        }
+                        // No new packet has been receive so I send the packet received before
+                        else
+                        {
+                         if (sendto(s_sim, &data, (LEN_BUF_SENSOR*sizeof(float)) , 0 , (struct sockaddr *) &outsock, slen)==-1)
+                        {
+                            die("sendto()");
+                        }
+                        }
+
+                    }
+                    else printf ("i wait too long ");
+
 
                 }
-                else printf ("i wait too long ");
-
-
-
 
             }
 /* TO IMPLEMENT
@@ -148,7 +225,7 @@ return 1;
 }
 
 
-long sendAndWait (fd_set rfds, int s_out, float* buf, int buflen, int flags, struct sockaddr_in outsock, int slen,
+long sendAndWait (fd_set rfds, int s_out, struct SensorData buf, int buflen, int flags, struct sockaddr_in outsock, int slen,
                         struct timeval tv, int second, int usecond  ){
         int retval;
         //need to reset timer at every loop
@@ -160,7 +237,7 @@ long sendAndWait (fd_set rfds, int s_out, float* buf, int buflen, int flags, str
         struct timespec spec;
          // Convert nanoseconds to milliseconds
 
-        if (sendto(s_out, buf, (buflen*sizeof(float)) , 0 , (struct sockaddr *) &outsock, slen)==-1)
+        if (sendto(s_out, &buf, (buflen*sizeof(float)) , 0 , (struct sockaddr *) &outsock, slen)==-1)
             {
                 die("sendto()");
             }
@@ -170,8 +247,10 @@ long sendAndWait (fd_set rfds, int s_out, float* buf, int buflen, int flags, str
         ms = round(spec.tv_nsec / 1.0e6);
         retval= select(2,&rfds,NULL,NULL, &tv);
 
-        if (retval == -1)
+        if (retval == -1){
             perror("select()");
+            return -1;
+            }
         else if (retval){
             clock_gettime(CLOCK_REALTIME, &spec);
             s  = spec.tv_sec;

@@ -1,0 +1,3 @@
+this folder contain the two programs that are running on the Oryx simulator PC handling sensor data from the IMU to the Sim. and the command from the Sim. to the Wheel Loader
+those projct depend on the socket.c file zhich is in the net folder 
+
