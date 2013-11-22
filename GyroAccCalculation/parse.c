@@ -207,6 +207,7 @@ void init(){
 	x_head_snd[0] = 0;
 	y_head_snd[0] = 0;
 	z_head_snd[0] = 0;
+	//MUST INITIAIZE RCV_BUF_POS to 1!
 }
 
 
