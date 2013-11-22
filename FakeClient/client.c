@@ -1,4 +1,3 @@
-
 /*
     Simple udp client
     Silver Moon (m00n.silv3r@gmail.com)
@@ -8,9 +7,10 @@
 #include<stdlib.h> //exit(0);
 #include<arpa/inet.h>
 #include<sys/socket.h>
+#include<unistd.h>
 
-#define SERVER "10.0.0.1"
-#define BUFLEN 512  //Max length of buffer
+#define SERVER "127.0.0.1"
+#define PACKETLEN 8 //Max length of buffer
 #define PORT 8888   //The port on which to send data
 
 void die(char *s)
@@ -22,8 +22,8 @@ void die(char *s)
 int main(void)
 {
     struct sockaddr_in si_other;
-    int s, i, slen=sizeof(si_other);
-    float packet [3.145, 4.589, 9.57,50.69,]
+    int s, slen=sizeof(si_other);
+    float packet [PACKETLEN] = {3.145, 4.589, 9.57, 50.69, 24.56, 42.32, 74.96, 38.06};
 
     if ( (s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
@@ -45,10 +45,11 @@ int main(void)
 
 
         //send the message
-        if (sendto(s, message, strlen(message) , 0 , (struct sockaddr *) &si_other, slen)==-1)
+        if (sendto(s, packet, PACKETLEN*sizeof(float) , 0 , (struct sockaddr *) &si_other, slen)==-1)
         {
             die("sendto()");
         }
+        usleep(10000);
 
 
     }
