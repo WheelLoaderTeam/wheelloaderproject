@@ -87,29 +87,29 @@ void write_USART(char data) {
 }
 
 int main(){
-    COM1 = open_serialport("/dev/ttyUSB0",500000);
-    printf("%d\n",COM1);
+    COM1 = open_serialport("/dev/ttyUSB0",500000);      //Open USB port
+   // printf("%d\n",COM1);                              //Just a test to see if port is opened
     unsigned char var;
-    int16_t value
-    ;
-    int i;
-    int a = 0;
+    int16_t value;
+    int a = 0;                                          //Counter to keep track of packets
     while(1) {
         var = read_USART();
-        if (var == '\n'){
-            printf("%d\n",value);
-            value = 0;
-            a = 0;}
+      //  printf("%d\n",value);                         //Test thing
+        if (var == '\n'){                               //If end of transmission
+            printf("%d\n",value);                       //Print out value
+            value = 0;                                  //Reset value
+            a = 0;}                                     //Start new counter
         else {
-            if (a == 0){
-                value = (var << 8);
-                a = 1;}
+            if (a == 0){                                //If first value (adc_hi)
+                value = (var << 8);                     //Shift it up 8 bits
+                a = 1;}                                 //increase counter
             else{
-                value = value | var;
+                value = value | var;                    //add adc_lo to result
                 }
 }
 
     }
 }
 
+//int i;
 //for(i=0; i<200;i++)
