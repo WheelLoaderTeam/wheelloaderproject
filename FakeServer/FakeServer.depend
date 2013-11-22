@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1385123836 source:/home/wlt-ssd/wheelloaderproject/FakeServer/server.c
+	<stdio.h>
+	<string.h>
+	<stdlib.h>
+	<arpa/inet.h>
+	<sys/socket.h>
+	<unistd.h>
+

@@ -15,9 +15,12 @@ void init_ports(void)	{
 	DDRF = 0x08; //JTAG and ADC 
 	DDRG = 0xFF; //Not used
 	
-	PORTB |= (1<<DDB6);
-	PORTB |= (1<<DDB5);
-	PORTB |= (1<<DDB4);
+	//SPI pins
+	PORTB |= (1<<PB0);
+	PORTB |= (1<<PB1);
+	PORTB |= (1<<PB4);
+	PORTB |= (1<<PB5);
+	PORTB |= (1<<PB6);
 }
 /*! Larsmarks code */
 void init_usb_usart(unsigned char baudrate) {
@@ -46,4 +49,37 @@ TCCR1B |= (1<<WGM12)|(1<<CS12)|(1<<CS10);
 TIMSK1 |= (1<<OCIE1A);
 OCR1A = 0x1E83;
 */
+}
+
+//The USART function are taken from Larsmark
+void usart_init(unsigned int baudrate) {
+	/* Set baud rate */
+	UBRR1H = (unsigned char) (baudrate>>8);
+	UBRR1L = (unsigned char) baudrate;
+	/* Set frame format: 8data, no parity & 1 stop bits */
+	UCSR1C = (0<<UMSEL0) | (0<<USBS0) | (1<<UCSZ1) | (1<<UCSZ0) | (0<<UCSZ2);
+	/* Enable receiver, transmitter and receive interrupt */
+	UCSR1B = (1<<RXEN1) | (1<<TXEN1) | (1<<RXCIE1);
+}
+
+void usart_send(unsigned char data){
+	/* Wait for empty transmit buffer */
+	while (!( UCSR1A & (1<<UDRE1)));
+	/* Put data into buffer, sends the data */
+	UDR1 = data;
+}
+void usart_putstring(char* data, unsigned char length){
+	int i;
+	for (i=0;i<length;i++)
+	usart_send(*(data++));
+}
+
+
+//All this should be put in another file, like init.c
+uint16_t read_adc(uint8_t channel){
+	ADMUX &= 0xF0;			//Clear older read channel
+	ADMUX |= channel;		//Define new channel to read
+	ADCSRA |= (1<<ADSC);	//Starts a new conversion
+	while(ADCSRA & (1<<ADSC)); //Wait until conversion is complete
+	return ADCW;
 }

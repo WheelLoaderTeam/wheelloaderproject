@@ -5,14 +5,24 @@
 #define ss_checkfrequency 5		//ss = StationaryState
 #define ss_deltathreshold 0.50
 #define ss_numrecords	  200   //At 100 hz = 2 seconds of data
+#define end_rcv_buf    	  1024	//Adjust depending on size of buffer
+#define begin_rcv_buf     0
+#define end_snd_buf       1024	
+#define begin_rcv_buf     0
+
 
 int parseFile(char *filename);
 int checkIfSS(int rcv_buf_pos);
 void accPitchRoll(int rcv_buf_pos);
 void gyroBias(int rcv_buf_pos);
+void loadGyroSendBuffer(char calibrated, int snd_buf_pos, int rcv_buf_pos, double pitch, double roll, double x_bias, double y_bias, double z_bias);
+void init();
+void sendAccData();
 
 int main(int argc, char *argv[]) {
 	int rcv_buf_pos;
+	int snd_buf_pos;
+
     rcv_buf_pos = parseFile(argv[1]);
 	//checkIfSS(rcv_buf_pos);
 	//accPitchRoll(rcv_buf_pos);
@@ -87,7 +97,7 @@ int checkIfSS(int rcv_buf_pos){
 
 	//printf("Buf Pos = %d\n", rcv_buf_pos);
 	do{
-		if(rcv_buf_pos == 0){
+		if(rcv_buf_pos == begin_rcv_buf){
 			//wrap around to correct position
 		}
 		if(x_acc_rcv[rcv_buf_pos] > x_max){x_max = x_acc_rcv[rcv_buf_pos];}
@@ -126,7 +136,7 @@ void accPitchRoll(int rcv_buf_pos){
 	double pitch_rad = 0, roll_rad = 0;
 
 	do{
-		if(rcv_buf_pos == 0){
+		if(rcv_buf_pos == begin_rcv_buf){
 			//wrap around to correct position
 		}
 		x_acc_rcvavg+= x_acc_rcv[rcv_buf_pos];
@@ -153,7 +163,7 @@ void gyroBias(int rcv_buf_pos){
 	double x_gyrbias = 0, y_gyrbias = 0, z_gyrbias = 0;
 
 	do{
-		if(rcv_buf_pos == 0){
+		if(rcv_buf_pos == begin_rcv_buf){
 			//wrap around to correct position
 		}
 		x_gyrbias+= x_head_rcv[rcv_buf_pos];
@@ -175,10 +185,29 @@ sendGyroData()
 This function subtracts the gyro bias, and sends the data with respect to the last calibrated pitch and roll.
 */
 
-void loadGyroSendBuffer(char calibrated, int buffer_ptr, double pitch, double roll, double x_bias, double y_bias, double z_bias){
-	if(calibrated){
-
+void loadGyroSendBuffer(char calibrated, int snd_buf_pos, int rcv_buf_pos, double pitch, double roll, double x_bias, double y_bias, double z_bias){
+	if(snd_buf_pos = end_snd_buf){
+		//Wrap buffer around to correct position
 	}
+	if(calibrated){
+		x_head_snd[snd_buf_pos] = roll;
+		y_head_snd[snd_buf_pos] = pitch;
+		z_head_snd[snd_buf_pos] = 0; //Z gyro data unused.
+		snd_buf_pos++;
+	}
+	else{
+		x_head_snd[snd_buf_pos] = (x_head_rcv[rcv_buf_pos] - x_bias) + x_head_snd[snd_buf_pos - 1]; //Must load first snd buffer position with 0, and incrementptr!
+		y_head_snd[snd_buf_pos] = (y_head_rcv[rcv_buf_pos] - y_bias) + y_head_snd[snd_buf_pos - 1];
+		z_head_snd[snd_buf_pos] = 0;
+		snd_buf_pos++;
+	}
+}
+
+void init(){
+	x_head_snd[0] = 0;
+	y_head_snd[0] = 0;
+	z_head_snd[0] = 0;
+	//MUST INITIAIZE RCV_BUF_POS to 1!
 }
 
 
