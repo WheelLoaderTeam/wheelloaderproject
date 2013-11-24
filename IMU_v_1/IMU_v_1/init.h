@@ -11,4 +11,11 @@ void init_ADC(void);
 
 void init_timer(void);
 
+void usart_init(unsigned int baudrate);
+
+void usart_send(unsigned char data);
+
+void usart_putstring(char* data, unsigned char length);
+
+uint16_t read_adc(uint8_t channel);		//Function to read ADC
 #endif
