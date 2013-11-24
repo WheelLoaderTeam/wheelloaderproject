@@ -7,7 +7,7 @@
 int main(void){
 	//variable definitions:
 	int bufferEmpty = 1;
-	EBUanalogOut buffer;
+//	EBUanalogOut buffer;
 	uint32_t lastPacketID;
 	struct timespec timeOflastPacketArrival;
 	
@@ -46,13 +46,13 @@ int main(void){
 				//set remaining time of short timeout
 			}
 	}
-	return 1;
+	return 0;
 }
 
 
-int commandPacket2EBUpacket(CommandPacket* commandPacket, EBUanalogOut* analogEBUpacket){
-	
-	
-	
-	return 1;
-}
+//int commandPacket2EBUpacket(CommandPacket* commandPacket, EBUanalogOut* analogEBUpacket){
+//	
+//	
+//	
+//	return 0;
+//}
