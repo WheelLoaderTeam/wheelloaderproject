@@ -7,16 +7,13 @@
 #define ss_numrecords	  200   //At 100 hz = 2 seconds of data
 #define end_rcv_buf    	  1024	//Adjust depending on size of buffer
 #define begin_rcv_buf     0
-#define end_snd_buf       1024	
-#define begin_rcv_buf     0
 
 
 int parseFile(char *filename);
 int checkIfSS(int rcv_buf_pos);
 void accPitchRoll(int rcv_buf_pos);
 void gyroBias(int rcv_buf_pos);
-void loadGyroSendBuffer(char calibrated, int snd_buf_pos, int rcv_buf_pos, double pitch, double roll, double x_bias, double y_bias, double z_bias);
-void init();
+void sendGyroData(int gyro_packet_old, int gyro_packet_new, double x_bias, double y_bias, double z_bias);
 void sendAccData();
 
 int main(int argc, char *argv[]) {
@@ -32,7 +29,6 @@ int main(int argc, char *argv[]) {
 }
 
 double *x_acc_rcv, *y_acc_rcv, *z_acc_rcv, *x_head_rcv, *y_head_rcv, *z_head_rcv;
-double *x_acc_snd, *y_acc_snd, *z_acc_snd, *x_head_snd, *y_head_snd, *z_head_snd;
 
 int parseFile(char *filename) {
     char buf[1024];
@@ -53,12 +49,6 @@ int parseFile(char *filename) {
     x_head_rcv = calloc(n-1,sizeof(double));
     y_head_rcv = calloc(n-1,sizeof(double));
     z_head_rcv = calloc(n-1,sizeof(double));
-    x_acc_snd = calloc(n-1,sizeof(double));
-    y_acc_snd = calloc(n-1,sizeof(double));
-    z_acc_snd = calloc(n-1,sizeof(double));
-    x_head_snd = calloc(n-1,sizeof(double));
-    y_head_snd = calloc(n-1,sizeof(double));
-    z_head_snd = calloc(n-1,sizeof(double));
     
     //ignore first line
     fgets(buf,1024,f);
@@ -182,32 +172,13 @@ void gyroBias(int rcv_buf_pos){
 
 /*
 sendGyroData()
-This function subtracts the gyro bias, and sends the data with respect to the last calibrated pitch and roll.
+This function subtracts the appropriate gyro bias, and sends the data to the correct address.
 */
 
-void loadGyroSendBuffer(char calibrated, int snd_buf_pos, int rcv_buf_pos, double pitch, double roll, double x_bias, double y_bias, double z_bias){
-	if(snd_buf_pos = end_snd_buf){
-		//Wrap buffer around to correct position
-	}
-	if(calibrated){
-		x_head_snd[snd_buf_pos] = roll;
-		y_head_snd[snd_buf_pos] = pitch;
-		z_head_snd[snd_buf_pos] = 0; //Z gyro data unused.
-		snd_buf_pos++;
-	}
-	else{
-		x_head_snd[snd_buf_pos] = (x_head_rcv[rcv_buf_pos] - x_bias) + x_head_snd[snd_buf_pos - 1]; //Must load first snd buffer position with 0, and incrementptr!
-		y_head_snd[snd_buf_pos] = (y_head_rcv[rcv_buf_pos] - y_bias) + y_head_snd[snd_buf_pos - 1];
-		z_head_snd[snd_buf_pos] = 0;
-		snd_buf_pos++;
-	}
-}
+void sendGyroData(int gyro_packet_old, int gyro_packet_new, double x_bias, double y_bias, double z_bias){
 
-void init(){
-	x_head_snd[0] = 0;
-	y_head_snd[0] = 0;
-	z_head_snd[0] = 0;
-	//MUST INITIAIZE RCV_BUF_POS to 1!
+	//Packet format = Acc xyz gyro xyz, 12 bytes(2 per)
+
 }
 
 
