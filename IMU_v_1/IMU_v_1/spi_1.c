@@ -44,7 +44,7 @@ uint32_t spiTransferAll(uint32_t data, int CS)
 	
 	
 	outdata = 0;
-	spiSendByte(0x00);
+	spiSendByte(0x10);
 	outdata = ((uint32_t)SPDR)<<24;
 	spiSendByte(0x00);
 	outdata |= ((uint32_t)SPDR)<<16;
