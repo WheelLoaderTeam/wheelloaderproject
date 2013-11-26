@@ -9,26 +9,53 @@
 #define begin_rcv_buf     0
 
 
+typedef struct{
+	double xAxis;
+	double yAxis;
+	double zAxis;
+}gyro_bias;
+
+typedef struct{
+	double pitch;
+	double roll;
+}abs_pos;
+	
+
+
 int parseFile(char *filename);
 int checkIfSS(int rcv_buf_pos);
-void accPitchRoll(int rcv_buf_pos);
-void gyroBias(int rcv_buf_pos);
-void sendGyroData(int gyro_packet_old, int gyro_packet_new, double x_bias, double y_bias, double z_bias);
+abs_pos getAbsPos(int rcv_buf_pos);
+gyro_bias getGyroBias(int rcv_buf_pos);
+void sendPacket(int packet_old, int packet_new, double x_bias, double y_bias, double z_bias);
 void sendAccData();
 
 int main(int argc, char *argv[]) {
 	int rcv_buf_pos;
-	int snd_buf_pos;
-
+	int counter = 0, packet_old = 0, packet_new = 0;
+	abs_pos radians; // must think about the best way to initialize these structs. 
+	gyro_bias bias;
     rcv_buf_pos = parseFile(argv[1]);
-	//checkIfSS(rcv_buf_pos);
-	//accPitchRoll(rcv_buf_pos);
-	gyroBias(rcv_buf_pos);
 
-	return 0;
+	while(1){
+		packet_old = packet_new;
+		while(packet_new = rcvPacket()); //rcvPacket to be written by Jesper
+		//Create circular buffer and store packet_new here, updating buffer ptr
+		while(sendPacket(packet_old, packet_new, bias.xAxis, bias.yAxis, bias.zAxis));
+		counter++;
+		if(counter == ss_numrecords){
+			counter = 0;
+			if(checkIfSS(rcv_buf_pos)){
+				radians = getAbsPos(rcv_buf_pos);
+				bias = getGyroBias(rcv_buf_pos);
+				packet_new = radians.pitch + radians.roll;//Need to modify this to appropriately format packet. 
+				sendPacket(0, packet_new, 0, 0, 0);
+			}
+		}
+	}
 }
 
 double *x_acc_rcv, *y_acc_rcv, *z_acc_rcv, *x_head_rcv, *y_head_rcv, *z_head_rcv;
+
 
 int parseFile(char *filename) {
     char buf[1024];
@@ -114,16 +141,16 @@ int checkIfSS(int rcv_buf_pos){
 }
 
 /*
-accPitchRoll(int rcv_buf_pos)
+getAbsPos(int rcv_buf_pos)
 This function calculates pitch(y-rotation) and roll(x-rotation) based on the static acceleration.
 These values are used to "reset" the simulator, and erase any accumulated drift.
 The gyro data sent is always relative to the latest pitch/roll data, again to prevent drift error.
 Called when the system is determined to be at rest. 
 */
-void accPitchRoll(int rcv_buf_pos){
+abs_pos getAbsPos(int rcv_buf_pos){
 	int i = ss_numrecords;
 	double x_acc_rcvavg = 0, y_acc_rcvavg = 0;
-	double pitch_rad = 0, roll_rad = 0;
+	abs_pos radians;
 
 	do{
 		if(rcv_buf_pos == begin_rcv_buf){
@@ -136,38 +163,38 @@ void accPitchRoll(int rcv_buf_pos){
 
 	x_acc_rcvavg = (x_acc_rcvavg/ss_numrecords);
 	y_acc_rcvavg = (y_acc_rcvavg/ss_numrecords);
-	pitch_rad = asin (y_acc_rcvavg);
-	roll_rad  = asin (x_acc_rcvavg);
+	radians.pitch = asin (y_acc_rcvavg);
+	radians.roll  = asin (x_acc_rcvavg);
 	//Test
 	printf("Angle in degrees of pitch: %lf, and roll: %lf\n x_acc_rcvavg: %lf y_acc_rcvavg: %lf\n", 
-			(pitch_rad * (180/3.14159)), (roll_rad * (180/3.14159)), x_acc_rcvavg, y_acc_rcvavg);
+			(radians.pitch * (180/3.14159)), (radians.roll * (180/3.14159)), x_acc_rcvavg, y_acc_rcvavg);
+	return radians;
 }
 
 /*
-gyroBias()
-This function calculates the bias of the gyros. Called if the system is determined to be at rest. 
+calcGyroBias()
+This function calculates the bias of the gyros. Called when the system is determined to be at rest. 
 */
 
-void gyroBias(int rcv_buf_pos){
+gyro_bias getGyroBias(int rcv_buf_pos){
 	int i = ss_numrecords;
-	double x_gyrbias = 0, y_gyrbias = 0, z_gyrbias = 0;
-
+	gyro_bias bias;
 	do{
 		if(rcv_buf_pos == begin_rcv_buf){
 			//wrap around to correct position
 		}
-		x_gyrbias+= x_head_rcv[rcv_buf_pos];
-		y_gyrbias+= y_head_rcv[rcv_buf_pos];
-		z_gyrbias+= z_head_rcv[rcv_buf_pos];
+		bias.xAxis+= x_head_rcv[rcv_buf_pos];
+		bias.yAxis+= y_head_rcv[rcv_buf_pos];
+		bias.zAxis+= z_head_rcv[rcv_buf_pos];
 		rcv_buf_pos--;
 	}while(i--);
 
-	x_gyrbias = x_gyrbias/ss_numrecords;
-	y_gyrbias = y_gyrbias/ss_numrecords;
-	z_gyrbias = z_gyrbias/ss_numrecords;
+	bias.xAxis = bias.xAxis/ss_numrecords;
+	bias.yAxis = bias.yAxis/ss_numrecords;
+	bias.zAxis = bias.zAxis/ss_numrecords;
 	//Test
-	printf("X Gyro bias: %lf, Y Gyro bias: %lf, Z Gyro bias: %lf\n", x_gyrbias, y_gyrbias, z_gyrbias);
-
+	printf("X Gyro bias: %lf, Y Gyro bias: %lf, Z Gyro bias: %lf\n", bias.xAxis, bias.yAxis, bias.zAxis);
+	return bias;
 }
 
 /*
