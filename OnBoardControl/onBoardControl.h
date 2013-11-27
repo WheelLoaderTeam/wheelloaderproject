@@ -14,6 +14,7 @@
 #include "socket.h"
 
 
+int commandPacket2EBUpacket(CommandPacket* commandPacket, EBUanalogOut* analogEBUpacket);
 
 struct timespec tsAdd(struct timespec ts1, struct timespec ts2);
 struct timespec tsSub(struct timespec ts1, struct timespec ts2);
