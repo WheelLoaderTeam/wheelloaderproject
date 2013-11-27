@@ -8,7 +8,7 @@
 #define end_rcv_buf    	  1024	//Adjust depending on size of buffer
 #define begin_rcv_buf     0
 
-
+//Testing Git on Personal Machine - Comment should show up in commit
 typedef struct{
 	double xAxis;
 	double yAxis;
