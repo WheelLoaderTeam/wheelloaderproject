@@ -7,18 +7,28 @@
 #define ss_numrecords	  200   //At 100 hz = 2 seconds of data
 #define end_rcv_buf    	  1024	//Adjust depending on size of buffer
 #define begin_rcv_buf     0
+//Capital Letters
 
 //Testing Git on Personal Machine - Comment should show up in commit
 typedef struct{
-	double xAxis;
-	double yAxis;
-	double zAxis;
+	float xAxis;
+	float yAxis;
+	float zAxis;
 }gyro_bias;
 
 typedef struct{
-	double pitch;
-	double roll;
+	float pitch;
+    float roll;
 }abs_pos;
+
+typedef struct{
+    float posX;
+    float posY;
+    float posZ;
+    float rotX;
+    float rotY;
+    float rotZ;
+}packet_load;
 	
 
 
@@ -26,29 +36,33 @@ int parseFile(char *filename);
 int checkIfSS(int rcv_buf_pos);
 abs_pos getAbsPos(int rcv_buf_pos);
 gyro_bias getGyroBias(int rcv_buf_pos);
-void sendPacket(int packet_old, int packet_new, double x_bias, double y_bias, double z_bias);
+void sendData(packet_load packet_old, packet_load packet_new, gyro_bias bias);
 void sendAccData();
+//packet_load rcvData();
 
 int main(int argc, char *argv[]) {
 	int rcv_buf_pos;
-	int counter = 0, packet_old = 0, packet_new = 0;
+	int counter = 0;
+    packet_load packet_old;
+    packet_load packet_new;
 	abs_pos radians; // must think about the best way to initialize these structs. 
 	gyro_bias bias;
     rcv_buf_pos = parseFile(argv[1]);
 
 	while(1){
 		packet_old = packet_new;
-		while(packet_new = rcvPacket()); //rcvPacket to be written by Jesper
+		//packet_new = rcvData(); //rcvPacket to be written by Jesper
 		//Create circular buffer and store packet_new here, updating buffer ptr
-		while(sendPacket(packet_old, packet_new, bias.xAxis, bias.yAxis, bias.zAxis));
+		sendData(packet_old, packet_new, bias);
 		counter++;
 		if(counter == ss_numrecords){
 			counter = 0;
 			if(checkIfSS(rcv_buf_pos)){
 				radians = getAbsPos(rcv_buf_pos);
 				bias = getGyroBias(rcv_buf_pos);
-				packet_new = radians.pitch + radians.roll;//Need to modify this to appropriately format packet. 
-				sendPacket(0, packet_new, 0, 0, 0);
+				packet_new.rotY = radians.pitch;
+                packet_new.rotX = radians.roll;//Need to modify this to appropriately format packet.
+				sendData(packet_old, packet_new, bias);
 			}
 		}
 	}
@@ -202,7 +216,7 @@ sendGyroData()
 This function subtracts the appropriate gyro bias, and sends the data to the correct address.
 */
 
-void sendGyroData(int gyro_packet_old, int gyro_packet_new, double x_bias, double y_bias, double z_bias){
+void sendData(packet_load packet_old, packet_load packet_new, gyro_bias bias){
 
 	//Packet format = Acc xyz gyro xyz, 12 bytes(2 per)
 
