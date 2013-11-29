@@ -15,22 +15,33 @@
 *\def IMU_PORT Port number for sending the movement packets to OryxPC
 */
 #define IMU_PORT 65100
-
-
 /**
 *\def MOV_PORT Port number for sending the movements packets to Simulator
 */
 #define MOV_PORT 65101
 
-/**
-*\def EBU_PORT Port number receiving from EBU Com.
-*/
-#define EBU_PORT 65200
 
 /**
-*\def EBUOUT_PORT Port number sending EBUs data
+*\def EBU_ANALOG_OUT_PORT Port number the EBU will receive 'analog out' packets on.
 */
-#define EBUOUT_PORT 65201
+#define EBU_ANALOG_OUT_PORT 65200
+/**
+*\def EBU_DIGITAL_OUT_PORT Port number the EBU will receive 'digital out' packets on.
+*/
+#define EBU_DIGITAL_OUT_PORT 65300
+/**
+*\def EBU_RELAYS_PORT Port number the EBU will receive 'relays' packets on.
+*/
+#define EBU_RELAYS_PORT 65400
+
+/**
+*\def EBU_ANALOG_IN_PORT Port number the EBU will send 'analog in' packets to.
+*/
+#define EBU_ANALOG_IN_PORT 65101
+/**
+*\def EBU_DIGITAL_IN_PORT Port number the EBU will send 'digital in' packets to.
+*/
+#define EBU_DIGITAL_IN_PORT 65301
 
 
 /**
