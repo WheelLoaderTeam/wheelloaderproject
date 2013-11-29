@@ -8,9 +8,10 @@ int main(void){
 	int bufferEmpty = 1;
 	EBUanalogOut buffer;
 	uint32_t lastPacketID;
-	struct timespec timeOflastPacketArrival;
 	struct timespec timeOflastPacketSent;
 	struct timespec now;
+	
+	commandPacket comPacket
 	
 	struct timespec timeout = LONG_TIMEOUT;
 	
@@ -23,37 +24,45 @@ int main(void){
 	fd_set fs;
 	FD_ZERO(&fs);
 	FD_SET(0, &fs);
-	//set long timeout
 	
 	while(0){
 		//wait for packet from simulator
-		//peslect(NULL, NULL, NULL, NULL, NULL, NULL)
-		//if //timeout
+		//int rVal = peslect(NULL, NULL, NULL, NULL, timeout, NULL)
+		clock_gettime(CLOCK_REALTIME, &now);
+		if(rVal == 0){ //timeout
 			if(bufferEmpty){
 				//send stop packet
-				//set long timeout
+				timeout = LONG_TIMEOUT;
 			} else{ //buffer not empty
 				//send packet in buffer
-				//clear buffer
-				//set long timeout
+				bufferEmpty = 1;//clear buffer
+				timeout = LONG_TIMEOUT;
 			}
-		//else //incomming packet
+		}else{ //incomming packet
+			//Get incomming packet
 			if(bufferEmpty){
-				if(0){ //(time since last packet sent > short timeout)
+				if(tsComp(tsSub(now, timeOflastPacketSent), SHORT_TIMEOUT) == 1){ //(time since last packet sent > short timeout)
 					//send packet imediatly
-					//set long timeout
+					timeout = LONG_TIMEOUT;
 				}else //(time since last packet sent < short timeout)
 					//put packet in buffer
+					commandPacket2EBUpacket(&comPacket, &buffer);
+					lastPacketID = comPacket.packetId;
+					bufferEmpty = 0;
 					//set remaining time of short timeout
-					clock_gettime(CLOCK_REALTIME, &now);
 					timeout = tsSub(now, tsAdd(timeOflastPacketSent, SHORT_TIMEOUT));
 				}
 			} else{ //buffer not empty
-				//determine witch packet should remain in buffer
+				if(comPacket.packetId > lastPacketID){//determine witch packet should remain in buffer
+					//put packet in buffer
+					commandPacket2EBUpacket(&comPacket, &buffer);
+					lastPacketID = comPacket.packetId;
+					bufferEmpty = 0;
+				}
 				//set remaining time of short timeout
-				clock_gettime(CLOCK_REALTIME, &now);
 				timeout = tsSub(now, tsAdd(timeOflastPacketSent, SHORT_TIMEOUT));
 			}
+		}
 	}
 	struct timespec t1;
 	struct timespec t2;
@@ -70,6 +79,13 @@ int main(void){
 	}
 	printf("%lu\n", r.tv_sec);
 	printf("%lu\n", r.tv_nsec);
+	
+	return 0;
+}
+
+int commandPacket2EBUpacket(CommandPacket* commandPacket, EBUanalogOut* analogEBUpacket){
+	
+	
 	
 	return 0;
 }
@@ -114,9 +130,4 @@ int tsComp(struct timespec ts1, struct timespec ts2){
 	}
 	
 }
-//int commandPacket2EBUpacket(CommandPacket* commandPacket, EBUanalogOut* analogEBUpacket){
-//	
-//	
-//	
-//	return 0;
-//}
+

@@ -24,7 +24,7 @@ void spiSendByte(uint8_t data)
 uint32_t spiTransferAll(uint32_t data, int CS)
 {
 	uint32_t outdata;
-	PORTB &= ~(1<<PB0);
+	PORTB &= ~(1<<PB0); //Possibly needed to start CLK
 	if (CS == 1)
 	{
 		PORTB &= ~(1<<PB4);	//Set CS1 low
@@ -44,7 +44,7 @@ uint32_t spiTransferAll(uint32_t data, int CS)
 	
 	
 	outdata = 0;
-	spiSendByte(0x10);
+	spiSendByte(0x00);
 	outdata = ((uint32_t)SPDR)<<24;
 	spiSendByte(0x00);
 	outdata |= ((uint32_t)SPDR)<<16;
@@ -69,6 +69,4 @@ uint32_t spiTransferAll(uint32_t data, int CS)
 	return outdata;
 }
 	
-	//Skriv while loop som väntar på flagga. Loopa fyra gånger, gyro skickar 32 bitar, MCU tar emot 8 -> fyra läsningar. Skicka dummy-variabel för att starta.
 
-	//Definiera, open, write, wait, read, close.
