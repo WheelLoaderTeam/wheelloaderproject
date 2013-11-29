@@ -1,0 +1,25 @@
+void eventloop() {
+    // create & bind a new socket
+    // new timeval for timeout
+    // char packetPending, packet buffer oldData[0] and oldData[1]
+    while(1) {
+        select()
+
+        
+        // if timeout AND packet pending
+        //      send the packet
+        //      reset timeout to 10 ms
+
+        
+        // if timeout AND no packet pending
+        //      extrapolate from old data
+        //      send the packet packetpending to false
+        //      reset timeout to 10 ms
+
+        
+        // if new packet
+        //      recvFrom() to read the packet put packet pending to true
+        //      check packet ID and maybe put it in the buffer as oldData[0] or oldData[1]
+        //      re-calculate timeout until next send (if very small, send the packet now)
+    }
+}
