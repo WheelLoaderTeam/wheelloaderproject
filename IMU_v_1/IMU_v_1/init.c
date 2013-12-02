@@ -52,14 +52,15 @@ OCR1A = 0x1E83;
 }
 
 //The USART function are taken from Larsmark
-void usart_init(unsigned int baudrate) {
+void usart_init(uint16_t baudrate) {
 	/* Set baud rate */
-	UBRR1H = (unsigned char) (baudrate>>8);
-	UBRR1L = (unsigned char) baudrate;
+	UBRR1H = (uint8_t) (baudrate>>8);
+	UBRR1L = (uint8_t) baudrate;
 	/* Set frame format: 8data, no parity & 1 stop bits */
 	UCSR1C = (0<<UMSEL0) | (0<<USBS0) | (1<<UCSZ1) | (1<<UCSZ0) | (0<<UCSZ2);
 	/* Enable receiver, transmitter and receive interrupt */
-	UCSR1B = (1<<RXEN1) | (1<<TXEN1) | (1<<RXCIE1);
+	//UCSR1B = (1<<RXEN1) | (1<<TXEN1) | (1<<RXCIE1);
+	UCSR1B = (1<<TXEN1); 
 }
 
 void usart_send(unsigned char data){
