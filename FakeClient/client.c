@@ -8,6 +8,7 @@
 #include<arpa/inet.h>
 #include<sys/socket.h>
 #include<unistd.h>
+#include"../OryxSim_PC/sensorData.h"
 
 #define SERVER "127.0.0.1"
 #define PACKETLEN 8 //Max length of buffer
@@ -23,8 +24,18 @@ int main(void)
 {
     struct sockaddr_in si_other;
     int s, slen=sizeof(si_other);
-    float packet [PACKETLEN] = {3, PACKETLEN, 9.57, 50.69, 24.56, 42.32, 74.96, 38.06};
 
+    /////////////////////// declare what you want to send//////////////////////////////
+    SensorData data;
+    data.id = 0;
+    data.psize = PACKETLEN;
+    data.values[0]=9.57;
+    data.values[1]=50.69;
+    data.values[2]=24.56;
+    data.values[3]=42.32;
+    data.values[4]=74.96;
+    data.values[5]=38.06;
+    ///////////////////////////////////////////////////////////////////////////////////
     if ( (s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
         die("socket");
@@ -45,12 +56,13 @@ int main(void)
 
 
         //send the message
-        if (sendto(s, packet, PACKETLEN*sizeof(float) , 0 , (struct sockaddr *) &si_other, slen)==-1)
+        if (sendto(s, &data, sizeof(SensorData) , 0 , (struct sockaddr *) &si_other, slen)==-1)
         {
             die("sendto()");
         }
-        else
-        usleep(10000);
+        data.id +=1;
+        usleep(11000);
+
 
 
     }

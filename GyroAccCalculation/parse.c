@@ -2,53 +2,91 @@
 #include <stdlib.h>
 #include <float.h> 				//DBL_MAX
 #include <math.h> 				//asin
-#define ss_checkfrequency 5		//ss = StationaryState
-#define ss_deltathreshold 0.50
-#define ss_numrecords	  200   //At 100 hz = 2 seconds of data
-#define end_rcv_buf    	  1024	//Adjust depending on size of buffer
-#define begin_rcv_buf     0
+#define SS_CHECKFREQUENCY 5		//ss = StationaryState
+#define SS_DELTATHRESHOLD 0.50
+#define NUM_OF_SS_RECORDS 200   //At 100 hz = 2 seconds of data NOTE!!! circular_buffer.num_valid_rec must cap here!!!
+#define DELAY_LENGTH      250   //Length measured in # of records i.e 250 records = 2.5 sec
+#define END_RCV_BUF    	  1023	//Adjust depending on size of buffer
+#define BEGIN_RCV_BUF     0
+#define GYRO_POINTS_PER_PCKT 2   //Number of data points stored in each Gyro packet
+#define TRUE              1
+#define FALSE             0
+#define BYTES_PER_PACKET  32   
 
-//Testing Git on Personal Machine - Comment should show up in commit
 typedef struct{
-	double xAxis;
-	double yAxis;
-	double zAxis;
+    int last_write_pos;
+    int num_valid_rec;
+}circular_buffer;
+
+typedef struct{
+	float xAxis;
+	float yAxis;
+	float zAxis;
 }gyro_bias;
 
 typedef struct{
-	double pitch;
-	double roll;
+	float pitch;
+    float roll;
 }abs_pos;
-	
+
+typedef struct{
+    float id;
+    float size;
+}packet_header;
+
+//This struct and function decleration are to be declared in recvData.c. They are declared here for testing purposes.  
+typedef struct{
+    float posX;
+    float posY;
+    float posZ;
+    float rotX;
+    float rotY;
+    float rotZ;
+}packet_load;
+packet_load recvData();
 
 
 int parseFile(char *filename);
-int checkIfSS(int rcv_buf_pos);
-abs_pos getAbsPos(int rcv_buf_pos);
-gyro_bias getGyroBias(int rcv_buf_pos);
-void sendPacket(int packet_old, int packet_new, double x_bias, double y_bias, double z_bias);
+int checkIfSS(circular_buffer savebuffer);
+abs_pos getAbsPos(circular_buffer savebuffer);
+gyro_bias getGyroBias(circular_buffer savebuffer);
+void sendData(packet_load packet_old, packet_load packet_new, gyro_bias bias, packet_header header, char ss_flag);
 void sendAccData();
 
 int main(int argc, char *argv[]) {
 	int rcv_buf_pos;
-	int counter = 0, packet_old = 0, packet_new = 0;
+	int counter = 0;
+    char ss_flag = FALSE;
+    circular_buffer savebuffer;
+    savebuffer.last_write_pos = -1;
+    savebuffer.num_valid_rec = 0;
+    packet_header header;
+    header.id = 0;
+    header.size = BYTES_PER_PACKET;
+    packet_load packet_old;
+    packet_load packet_new;
 	abs_pos radians; // must think about the best way to initialize these structs. 
 	gyro_bias bias;
     rcv_buf_pos = parseFile(argv[1]);
 
 	while(1){
 		packet_old = packet_new;
-		while(packet_new = rcvPacket()); //rcvPacket to be written by Jesper
-		//Create circular buffer and store packet_new here, updating buffer ptr
-		while(sendPacket(packet_old, packet_new, bias.xAxis, bias.yAxis, bias.zAxis));
+		packet_new = recvData(); //rcvPacket to be written by Jesper
+        writeToBuffer(savebuffer, packet_new);
+		sendData(packet_old, packet_new, bias, header, ss_flag);
 		counter++;
-		if(counter == ss_numrecords){
+        header.id ++;
+		if(counter == DELAY_LENGTH){
 			counter = 0;
-			if(checkIfSS(rcv_buf_pos)){
-				radians = getAbsPos(rcv_buf_pos);
-				bias = getGyroBias(rcv_buf_pos);
-				packet_new = radians.pitch + radians.roll;//Need to modify this to appropriately format packet. 
-				sendPacket(0, packet_new, 0, 0, 0);
+			if(checkIfSS(savebuffer)){
+                ss_flag = TRUE;
+				radians = getAbsPos(savebuffer);
+				bias = getGyroBias(savebuffer);
+				packet_new.rotY = radians.pitch;
+                packet_new.rotX = radians.roll;//Need to modify this to appropriately format packet.
+				sendData(packet_old, packet_new, bias, header, ss_flag);
+                ss_flag = FALSE;
+                header.id ++;
 			}
 		}
 	}
@@ -56,6 +94,9 @@ int main(int argc, char *argv[]) {
 
 double *x_acc_rcv, *y_acc_rcv, *z_acc_rcv, *x_head_rcv, *y_head_rcv, *z_head_rcv;
 
+int writeToBuffer(circular_buffer savebuffer, packet_load packet_new){
+    //savebuffer.num_valid_rec must have a cap at NUM_OF_SS_RECORDS - 1!
+}
 
 int parseFile(char *filename) {
     char buf[1024];
@@ -103,34 +144,34 @@ int parseFile(char *filename) {
 }
 
 /*
-checkIfSS(int buf_pos)
-This function checks if the tractor is in a stationary state. A preset number of latest records(ss_numrecords) are read out of the accelerometer buffer. If each accelerometer axis shows a delta smaller than ss_deltathreshold , then the tractor is assumed to be stationary, and the function returns 1. If any accelerometer delta exceeds ss_deltathreshold, the function returns 0. The algorithm for determining delta is simply maximum - minimum.
+checkIfSS(int rcv_buf_pos)
+This function checks if the tractor is in a stationary state. A preset number of latest records(NUM_OF_SS_RECORDS) are read out of the accelerometer buffer. If each accelerometer axis shows a delta smaller than SS_DELTATHRESHOLD , then the tractor is assumed to be stationary, and the function returns 1. If any accelerometer delta exceeds SS_DELTATHRESHOLD, the function returns 0. The algorithm for determining delta is simply maximum - minimum.
 */
-int checkIfSS(int rcv_buf_pos){
-	int i = ss_numrecords;
+int checkIfSS(circular_buffer savebuffer){
+    int num_records = savebuffer.num_valid_rec;
+    int readindice = savebuffer.last_write_pos;
 	double x_min = DBL_MAX, x_max = -1 * DBL_MAX;
 	double y_min = DBL_MAX, y_max = -1 * DBL_MAX;
 	double z_min = DBL_MAX, z_max = -1 * DBL_MAX;
-
-	//printf("Buf Pos = %d\n", rcv_buf_pos);
-	do{
-		if(rcv_buf_pos == begin_rcv_buf){
-			//wrap around to correct position
+    
+	while( num_records != -1){
+		if(readindice == BEGIN_RCV_BUF - 1){
+			readindice = END_RCV_BUF;
 		}
-		if(x_acc_rcv[rcv_buf_pos] > x_max){x_max = x_acc_rcv[rcv_buf_pos];}
-		if(x_acc_rcv[rcv_buf_pos] < x_min){x_min = x_acc_rcv[rcv_buf_pos];}
-		if(y_acc_rcv[rcv_buf_pos] > y_max){y_max = y_acc_rcv[rcv_buf_pos];}
-		if(y_acc_rcv[rcv_buf_pos] < y_min){y_min = y_acc_rcv[rcv_buf_pos];}
-		if(z_acc_rcv[rcv_buf_pos] > z_max){z_max = z_acc_rcv[rcv_buf_pos];}
-		if(z_acc_rcv[rcv_buf_pos] < z_min){z_min = z_acc_rcv[rcv_buf_pos];}
-		rcv_buf_pos--;
-	}while(i--);
+		if(x_acc_rcv[readindice] > x_max){x_max = x_acc_rcv[readindice];}
+		if(x_acc_rcv[readindice] < x_min){x_min = x_acc_rcv[readindice];}
+		if(y_acc_rcv[readindice] > y_max){y_max = y_acc_rcv[readindice];}
+		if(y_acc_rcv[readindice] < y_min){y_min = y_acc_rcv[readindice];}
+		if(z_acc_rcv[readindice] > z_max){z_max = z_acc_rcv[readindice];}
+		if(z_acc_rcv[readindice] < z_min){z_min = z_acc_rcv[readindice];}
+		readindice--;
+	}
 	//test
 	printf("x_delta = %lf, y_delta = %lf, z_delta = %lf \n", x_max - x_min, y_max - y_min, z_max - z_min);
 
-	if( ((x_max - x_min) < ss_deltathreshold) && 
-		((y_max - y_min) < ss_deltathreshold) && 
-		((z_max - z_min) < ss_deltathreshold)){
+	if( ((x_max - x_min) < SS_DELTATHRESHOLD) && 
+		((y_max - y_min) < SS_DELTATHRESHOLD) && 
+		((z_max - z_min) < SS_DELTATHRESHOLD)){
 		printf("System is at rest\n");
 		return 1;
 	}
@@ -147,22 +188,24 @@ These values are used to "reset" the simulator, and erase any accumulated drift.
 The gyro data sent is always relative to the latest pitch/roll data, again to prevent drift error.
 Called when the system is determined to be at rest. 
 */
-abs_pos getAbsPos(int rcv_buf_pos){
-	int i = ss_numrecords;
+abs_pos getAbsPos(circular_buffer savebuffer){
+    int num_records = savebuffer.num_valid_rec;
+    int readindice = savebuffer.last_write_pos;
 	double x_acc_rcvavg = 0, y_acc_rcvavg = 0;
 	abs_pos radians;
 
-	do{
-		if(rcv_buf_pos == begin_rcv_buf){
-			//wrap around to correct position
+	while( num_records != -1){
+		if(readindice == BEGIN_RCV_BUF - 1){
+			readindice = END_RCV_BUF;
 		}
-		x_acc_rcvavg+= x_acc_rcv[rcv_buf_pos];
-		y_acc_rcvavg+= y_acc_rcv[rcv_buf_pos];
-		rcv_buf_pos--;
-	}while(i--);
+		x_acc_rcvavg+= x_acc_rcv[readindice];
+		y_acc_rcvavg+= y_acc_rcv[readindice];
+		readindice--;
+        num_records--;
+	}
 
-	x_acc_rcvavg = (x_acc_rcvavg/ss_numrecords);
-	y_acc_rcvavg = (y_acc_rcvavg/ss_numrecords);
+	x_acc_rcvavg = (x_acc_rcvavg/savebuffer.num_valid_rec);
+	y_acc_rcvavg = (y_acc_rcvavg/savebuffer.num_valid_rec);
 	radians.pitch = asin (y_acc_rcvavg);
 	radians.roll  = asin (x_acc_rcvavg);
 	//Test
@@ -172,26 +215,30 @@ abs_pos getAbsPos(int rcv_buf_pos){
 }
 
 /*
-calcGyroBias()
+getGyroBias()
 This function calculates the bias of the gyros. Called when the system is determined to be at rest. 
 */
 
-gyro_bias getGyroBias(int rcv_buf_pos){
-	int i = ss_numrecords;
+gyro_bias getGyroBias(circular_buffer savebuffer){
+	int num_records = savebuffer.num_valid_rec;
+    int readindice = savebuffer.last_write_pos;
 	gyro_bias bias;
-	do{
-		if(rcv_buf_pos == begin_rcv_buf){
-			//wrap around to correct position
-		}
-		bias.xAxis+= x_head_rcv[rcv_buf_pos];
-		bias.yAxis+= y_head_rcv[rcv_buf_pos];
-		bias.zAxis+= z_head_rcv[rcv_buf_pos];
-		rcv_buf_pos--;
-	}while(i--);
 
-	bias.xAxis = bias.xAxis/ss_numrecords;
-	bias.yAxis = bias.yAxis/ss_numrecords;
-	bias.zAxis = bias.zAxis/ss_numrecords;
+    
+	while( num_records != -1){
+		if(readindice == BEGIN_RCV_BUF - 1){
+			readindice = END_RCV_BUF;
+		}
+		bias.xAxis+= x_head_rcv[readindice];
+		bias.yAxis+= y_head_rcv[readindice];
+		bias.zAxis+= z_head_rcv[readindice];
+		readindice--;
+        num_records--;
+	};
+
+	bias.xAxis = bias.xAxis/savebuffer.num_valid_rec;
+	bias.yAxis = bias.yAxis/savebuffer.num_valid_rec;
+	bias.zAxis = bias.zAxis/savebuffer.num_valid_rec;
 	//Test
 	printf("X Gyro bias: %lf, Y Gyro bias: %lf, Z Gyro bias: %lf\n", bias.xAxis, bias.yAxis, bias.zAxis);
 	return bias;
@@ -202,9 +249,17 @@ sendGyroData()
 This function subtracts the appropriate gyro bias, and sends the data to the correct address.
 */
 
-void sendGyroData(int gyro_packet_old, int gyro_packet_new, double x_bias, double y_bias, double z_bias){
+void sendData(packet_load packet_old, packet_load packet_new, gyro_bias bias, packet_header header, char ss_flag){
+    packet_load packet_to_send;
 
-	//Packet format = Acc xyz gyro xyz, 12 bytes(2 per)
+    if (ss_flag) {
+        packet_to_send.rotX = packet_new.rotX;
+        packet_to_send.rotY = packet_new.rotY;
+    }
+    else{
+        packet_to_send.rotX = (packet_old.rotX + (packet_new.rotX - (bias.xAxis * GYRO_POINTS_PER_PCKT)));
+        packet_to_send.rotY = (packet_old.rotY + (packet_new.rotY - (bias.yAxis * GYRO_POINTS_PER_PCKT)));
+    }
 
 }
 
@@ -216,4 +271,14 @@ This function takes the raw acceleration data, multiplies it by a constant and s
 
 void sendAccData(){
 
+}
+
+/*
+ recvData()
+ Temporary function for written for compilation purposes. Function to be used is written by Jesper. 
+ */
+ 
+packet_load recvData(){
+    
+    
 }
