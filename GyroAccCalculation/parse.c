@@ -50,16 +50,17 @@ int parseFile(char *filename);
 int checkIfSS(circular_buffer savebuffer);
 abs_pos getAbsPos(circular_buffer savebuffer);
 gyro_bias getGyroBias(circular_buffer savebuffer);
+circular_buffer initBuffer();
 void sendData(packet_load packet_old, packet_load packet_new, gyro_bias bias, packet_header header, char ss_flag);
 void sendAccData();
+void writeToBuffer(circular_buffer savebuffer, packet_load packet_new);
+void clearBufferElement(int element);
 
 int main(int argc, char *argv[]) {
-	int rcv_buf_pos;
 	int counter = 0;
     char ss_flag = FALSE;
     circular_buffer savebuffer;
-    savebuffer.last_write_pos = -1;
-    savebuffer.num_valid_rec = 0;
+    savebuffer = initBuffer();
     packet_header header;
     header.id = 0;
     header.size = BYTES_PER_PACKET;
@@ -67,7 +68,7 @@ int main(int argc, char *argv[]) {
     packet_load packet_new;
 	abs_pos radians; // must think about the best way to initialize these structs. 
 	gyro_bias bias;
-    rcv_buf_pos = parseFile(argv[1]);
+
 
 	while(1){
 		packet_old = packet_new;
@@ -92,55 +93,48 @@ int main(int argc, char *argv[]) {
 	}
 }
 
-double *x_acc_rcv, *y_acc_rcv, *z_acc_rcv, *x_head_rcv, *y_head_rcv, *z_head_rcv;
+double *x_acc, *y_acc, *z_acc, *x_head, *y_head, *z_head;
 
-int writeToBuffer(circular_buffer savebuffer, packet_load packet_new){
-    //savebuffer.num_valid_rec must have a cap at NUM_OF_SS_RECORDS - 1!
+void writeToBuffer(circular_buffer savebuffer, packet_load packet_new){
+    
+    clearBufferElement(savebuffer.last_write_pos + 1);
+    x_acc[savebuffer.last_write_pos + 1] = packet_new.posX;
+    y_acc[savebuffer.last_write_pos + 1] = packet_new.posY;
+    z_acc[savebuffer.last_write_pos + 1] = packet_new.posZ;
+    x_head[savebuffer.last_write_pos + 1] = packet_new.rotX;
+    y_head[savebuffer.last_write_pos + 1] = packet_new.rotY;
+    z_head[savebuffer.last_write_pos + 1] = packet_new.rotZ;
+    savebuffer.last_write_pos ++;
+    if(savebuffer.last_write_pos == END_RCV_BUF){
+        savebuffer.last_write_pos = - 1;
+    }
+    if (savebuffer.num_valid_rec < NUM_OF_SS_RECORDS - 1) {
+        savebuffer.num_valid_rec ++;//QUESTION - does this struct modification propogate through to the main?
+    }
 }
 
-int parseFile(char *filename) {
-    char buf[1024];
-    char *rcv_ptr;
-    int count, i, n = 0;
-    FILE *f = fopen(filename,"r");
-    
-    //find out the number of lines
-    while (fgets(buf,1024,f)) {
-        n++;
-    }
-    rewind(f);
-    
+void clearBufferElement(int element){
+    x_acc[element] = '\n';
+    y_acc[element] = '\n';
+    z_acc[element] = '\n';
+    x_head[element] = '\n';
+    y_head[element] = '\n';
+    z_head[element] = '\n';
+}
+
+circular_buffer initBuffer(){
+    circular_buffer savebuffer;
+    savebuffer.last_write_pos = -1;
+    savebuffer.num_valid_rec  = -1;
     //allocate memory
-    x_acc_rcv = calloc(n-1,sizeof(double));
-    y_acc_rcv = calloc(n-1,sizeof(double));
-    z_acc_rcv = calloc(n-1,sizeof(double));
-    x_head_rcv = calloc(n-1,sizeof(double));
-    y_head_rcv = calloc(n-1,sizeof(double));
-    z_head_rcv = calloc(n-1,sizeof(double));
+    x_acc = calloc(END_RCV_BUF,sizeof(float));
+    y_acc = calloc(END_RCV_BUF,sizeof(float));
+    z_acc = calloc(END_RCV_BUF,sizeof(float));
+    x_head = calloc(END_RCV_BUF,sizeof(float));
+    y_head = calloc(END_RCV_BUF,sizeof(float));
+    z_head = calloc(END_RCV_BUF,sizeof(float));
     
-    //ignore first line
-    fgets(buf,1024,f);
-    
-    //read the data
-    for (i = 0; i<n-1; i++) {
-        fgets(buf,1024,f);
-        rcv_ptr = buf;
-        count = 0;
-        while (count < 11) {
-            if (*rcv_ptr == ',')
-                count++;
-            rcv_ptr++;
-        }
-        sscanf(rcv_ptr,"%lf,%lf,%lf,%lf,%lf,%lf,",&x_acc_rcv[i],&y_acc_rcv[i],&z_acc_rcv[i],
-               &x_head_rcv[i],&y_head_rcv[i],&z_head_rcv[i]);
-    }
-    
-    /*//test
-    for (i = 0; i<n-1; i++) {
-        printf("%lf,%lf,%lf,%lf,%lf,%lf\n",x_acc_rcv[i],y_acc_rcv[i],z_acc_rcv[i],
-               x_head_rcv[i],y_head_rcv[i],z_head_rcv[i]);
-    }*/
-	return n-2;
+    return savebuffer;
 }
 
 /*
@@ -158,12 +152,12 @@ int checkIfSS(circular_buffer savebuffer){
 		if(readindice == BEGIN_RCV_BUF - 1){
 			readindice = END_RCV_BUF;
 		}
-		if(x_acc_rcv[readindice] > x_max){x_max = x_acc_rcv[readindice];}
-		if(x_acc_rcv[readindice] < x_min){x_min = x_acc_rcv[readindice];}
-		if(y_acc_rcv[readindice] > y_max){y_max = y_acc_rcv[readindice];}
-		if(y_acc_rcv[readindice] < y_min){y_min = y_acc_rcv[readindice];}
-		if(z_acc_rcv[readindice] > z_max){z_max = z_acc_rcv[readindice];}
-		if(z_acc_rcv[readindice] < z_min){z_min = z_acc_rcv[readindice];}
+		if(x_acc[readindice] > x_max){x_max = x_acc[readindice];}
+		if(x_acc[readindice] < x_min){x_min = x_acc[readindice];}
+		if(y_acc[readindice] > y_max){y_max = y_acc[readindice];}
+		if(y_acc[readindice] < y_min){y_min = y_acc[readindice];}
+		if(z_acc[readindice] > z_max){z_max = z_acc[readindice];}
+		if(z_acc[readindice] < z_min){z_min = z_acc[readindice];}
 		readindice--;
 	}
 	//test
@@ -191,26 +185,26 @@ Called when the system is determined to be at rest.
 abs_pos getAbsPos(circular_buffer savebuffer){
     int num_records = savebuffer.num_valid_rec;
     int readindice = savebuffer.last_write_pos;
-	double x_acc_rcvavg = 0, y_acc_rcvavg = 0;
+	double x_accavg = 0, y_accavg = 0;
 	abs_pos radians;
 
 	while( num_records != -1){
 		if(readindice == BEGIN_RCV_BUF - 1){
 			readindice = END_RCV_BUF;
 		}
-		x_acc_rcvavg+= x_acc_rcv[readindice];
-		y_acc_rcvavg+= y_acc_rcv[readindice];
+		x_accavg+= x_acc[readindice];
+		y_accavg+= y_acc[readindice];
 		readindice--;
         num_records--;
 	}
 
-	x_acc_rcvavg = (x_acc_rcvavg/savebuffer.num_valid_rec);
-	y_acc_rcvavg = (y_acc_rcvavg/savebuffer.num_valid_rec);
-	radians.pitch = asin (y_acc_rcvavg);
-	radians.roll  = asin (x_acc_rcvavg);
+	x_accavg = (x_accavg/savebuffer.num_valid_rec);
+	y_accavg = (y_accavg/savebuffer.num_valid_rec);
+	radians.pitch = asin (y_accavg);
+	radians.roll  = asin (x_accavg);
 	//Test
-	printf("Angle in degrees of pitch: %lf, and roll: %lf\n x_acc_rcvavg: %lf y_acc_rcvavg: %lf\n", 
-			(radians.pitch * (180/3.14159)), (radians.roll * (180/3.14159)), x_acc_rcvavg, y_acc_rcvavg);
+	printf("Angle in degrees of pitch: %lf, and roll: %lf\n x_accavg: %lf y_accavg: %lf\n", 
+			(radians.pitch * (180/3.14159)), (radians.roll * (180/3.14159)), x_accavg, y_accavg);
 	return radians;
 }
 
@@ -229,9 +223,9 @@ gyro_bias getGyroBias(circular_buffer savebuffer){
 		if(readindice == BEGIN_RCV_BUF - 1){
 			readindice = END_RCV_BUF;
 		}
-		bias.xAxis+= x_head_rcv[readindice];
-		bias.yAxis+= y_head_rcv[readindice];
-		bias.zAxis+= z_head_rcv[readindice];
+		bias.xAxis+= x_head[readindice];
+		bias.yAxis+= y_head[readindice];
+		bias.zAxis+= z_head[readindice];
 		readindice--;
         num_records--;
 	};
