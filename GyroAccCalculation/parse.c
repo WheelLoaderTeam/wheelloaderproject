@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
     packet_load packet_new;
 	abs_pos radians;
 	gyro_bias bias;
-    int start = STARTUP_LENGTH;
+    static int start = STARTUP_LENGTH;
     
     while (start--) {
 		packet_new = recvData(); //rcvPacket to be written by Jesper
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
 		packet_new = recvData(); //rcvPacket to be written by Jesper
         savebuffer = writeToBuffer(savebuffer, packet_new);
 		sendData(packet_old, packet_new, bias, header, ss_flag);
-		counter++;
+		counter++;cd ..
         header.id ++;
 		if(counter == DELAY_LENGTH){
 			counter = 0;
@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
 				radians = getAbsPos(savebuffer);
 				bias = getGyroBias(savebuffer);
 				packet_new.rotY = radians.pitch;
-                packet_new.rotX = radians.roll;//Need to modify this to appropriately format packet.
+                packet_new.rotX = radians.roll;
 				sendData(packet_old, packet_new, bias, header, ss_flag);
                 ss_flag = FALSE;
                 header.id ++;
@@ -111,7 +111,6 @@ int main(int argc, char *argv[]) {
 }
 
 double *x_acc, *y_acc, *z_acc, *x_head, *y_head, *z_head;
-
 
 circular_buffer writeToBuffer(circular_buffer savebuffer, packet_load packet_new){
     
@@ -166,7 +165,10 @@ int checkIfSS(circular_buffer savebuffer){
 	double x_min = DBL_MAX, x_max = -1 * DBL_MAX;
 	double y_min = DBL_MAX, y_max = -1 * DBL_MAX;
 	double z_min = DBL_MAX, z_max = -1 * DBL_MAX;
-    
+    if (num_records < 5) {
+        printf("Insufficient data to determine if system is stationary\n");
+		return 0;
+    }
 	while( num_records != -1){
 		if(readindice == BEGIN_RCV_BUF - 1){
 			readindice = END_RCV_BUF;
@@ -273,7 +275,17 @@ void sendData(packet_load packet_old, packet_load packet_new, gyro_bias bias, pa
         packet_to_send.rotX = (packet_old.rotX + (packet_new.rotX - (bias.xAxis * GYRO_POINTS_PER_PCKT)));
         packet_to_send.rotY = (packet_old.rotY + (packet_new.rotY - (bias.yAxis * GYRO_POINTS_PER_PCKT)));
     }
-
+    /*
+     One packet contains the following data, to be sent in this order. 
+     header.id
+     header.size
+     packet_to_send.rotX
+     packet_to_send.rotY
+     packet_to_send.rotZ
+     packet_to_send.posX
+     packet_to_send.posY
+     packet_to_send.posZ
+    */
 }
 
 
@@ -292,6 +304,5 @@ void sendAccData(){
  */
  
 packet_load recvData(){
-    
     
 }
