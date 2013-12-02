@@ -1,10 +1,10 @@
 #include <stdint.h>
 
 typedef struct commandPacket {
-	uint23_t packetId;
-	uint23_t packetSize;
+	uint32_t packetId;
+	uint32_t packetSize;
 	float analog[9];
-	uint23_t digital;
+	uint32_t digital;
 }commandPacket;
 
 #define new_commandPacket {0,0,0,0,0,0,0,0,0,0,0,0}

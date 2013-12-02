@@ -7,14 +7,17 @@
 
 #include <sys/time.h>
 #include <time.h>
+#include <sys/select.h>
 
 #include "EBUrelays.h"
 #include "EBUanalogOut.h"
 
+#include "commandPacket.h"
+
 #include "socket.h"
 
 
-int commandPacket2EBUpacket(CommandPacket* commandPacket, EBUanalogOut* analogEBUpacket);
+int commandPacket2EBUpacket(commandPacket* command, EBUanalogOut* analogEBUpacket);
 
 struct timespec tsAdd(struct timespec ts1, struct timespec ts2);
 struct timespec tsSub(struct timespec ts1, struct timespec ts2);

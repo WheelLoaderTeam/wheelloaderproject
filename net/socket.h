@@ -24,24 +24,24 @@
 /**
 *\def EBU_ANALOG_OUT_PORT Port number the EBU will receive 'analog out' packets on.
 */
-#define EBU_ANALOG_OUT_PORT 65200
+#define EBU_ANALOG_OUT_PORT 25200
 /**
 *\def EBU_DIGITAL_OUT_PORT Port number the EBU will receive 'digital out' packets on.
 */
-#define EBU_DIGITAL_OUT_PORT 65300
+#define EBU_DIGITAL_OUT_PORT 25300
 /**
 *\def EBU_RELAYS_PORT Port number the EBU will receive 'relays' packets on.
 */
-#define EBU_RELAYS_PORT 65400
+#define EBU_RELAYS_PORT 25400
 
 /**
 *\def EBU_ANALOG_IN_PORT Port number the EBU will send 'analog in' packets to.
 */
-#define EBU_ANALOG_IN_PORT 65101
+#define EBU_ANALOG_IN_PORT 25101
 /**
 *\def EBU_DIGITAL_IN_PORT Port number the EBU will send 'digital in' packets to.
 */
-#define EBU_DIGITAL_IN_PORT 65301
+#define EBU_DIGITAL_IN_PORT 25301
 
 
 /**
