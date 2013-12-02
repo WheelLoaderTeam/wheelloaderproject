@@ -4,7 +4,7 @@
 #include <math.h> 				//asin
 #define SS_CHECKFREQUENCY 5		//ss = StationaryState
 #define SS_DELTATHRESHOLD 0.50
-#define NUM_OF_SS_RECORDS 200   //At 100 hz = 2 seconds of data NOTE!!! circular_buffer.num_valid_rec must cap here!!!
+#define NUM_OF_SS_RECORDS 200   //At 100 hz = 2 seconds of data 
 #define DELAY_LENGTH      250   //Length measured in # of records i.e 250 records = 2.5 sec
 #define END_RCV_BUF    	  1023	//Adjust depending on size of buffer
 #define BEGIN_RCV_BUF     0
@@ -12,6 +12,7 @@
 #define TRUE              1
 #define FALSE             0
 #define BYTES_PER_PACKET  32   
+#define STARTUP_LENGTH    250    //Number of records to write into the save buffer upon startup.
 
 typedef struct{
     int last_write_pos;
@@ -45,15 +46,13 @@ typedef struct{
 }packet_load;
 packet_load recvData();
 
-
-int parseFile(char *filename);
 int checkIfSS(circular_buffer savebuffer);
 abs_pos getAbsPos(circular_buffer savebuffer);
 gyro_bias getGyroBias(circular_buffer savebuffer);
 circular_buffer initBuffer();
 void sendData(packet_load packet_old, packet_load packet_new, gyro_bias bias, packet_header header, char ss_flag);
 void sendAccData();
-void writeToBuffer(circular_buffer savebuffer, packet_load packet_new);
+circular_buffer writeToBuffer(circular_buffer savebuffer, packet_load packet_new);
 void clearBufferElement(int element);
 
 int main(int argc, char *argv[]) {
@@ -66,14 +65,32 @@ int main(int argc, char *argv[]) {
     header.size = BYTES_PER_PACKET;
     packet_load packet_old;
     packet_load packet_new;
-	abs_pos radians; // must think about the best way to initialize these structs. 
+	abs_pos radians;
 	gyro_bias bias;
+    int start = STARTUP_LENGTH;
+    
+    while (start--) {
+		packet_new = recvData(); //rcvPacket to be written by Jesper
+        savebuffer = writeToBuffer(savebuffer, packet_new);
+        counter++;
+        if(start == 1){
+			if(checkIfSS(savebuffer)){
+				radians = getAbsPos(savebuffer);
+				bias = getGyroBias(savebuffer);
+                start = 0;
+			}
+            else{
+                printf("Tractor must be stationary upon startup for 30 seconds!");
+                start = STARTUP_LENGTH;
+            }
+		}
+    }
 
 
 	while(1){
 		packet_old = packet_new;
 		packet_new = recvData(); //rcvPacket to be written by Jesper
-        writeToBuffer(savebuffer, packet_new);
+        savebuffer = writeToBuffer(savebuffer, packet_new);
 		sendData(packet_old, packet_new, bias, header, ss_flag);
 		counter++;
         header.id ++;
@@ -95,7 +112,8 @@ int main(int argc, char *argv[]) {
 
 double *x_acc, *y_acc, *z_acc, *x_head, *y_head, *z_head;
 
-void writeToBuffer(circular_buffer savebuffer, packet_load packet_new){
+
+circular_buffer writeToBuffer(circular_buffer savebuffer, packet_load packet_new){
     
     clearBufferElement(savebuffer.last_write_pos + 1);
     x_acc[savebuffer.last_write_pos + 1] = packet_new.posX;
@@ -109,17 +127,18 @@ void writeToBuffer(circular_buffer savebuffer, packet_load packet_new){
         savebuffer.last_write_pos = - 1;
     }
     if (savebuffer.num_valid_rec < NUM_OF_SS_RECORDS - 1) {
-        savebuffer.num_valid_rec ++;//QUESTION - does this struct modification propogate through to the main?
+        savebuffer.num_valid_rec ++;
     }
+    return savebuffer;
 }
 
 void clearBufferElement(int element){
-    x_acc[element] = '\n';
-    y_acc[element] = '\n';
-    z_acc[element] = '\n';
-    x_head[element] = '\n';
-    y_head[element] = '\n';
-    z_head[element] = '\n';
+    x_acc[element]  = '\0';
+    y_acc[element]  = '\0';
+    z_acc[element]  = '\0';
+    x_head[element] = '\0';
+    y_head[element] = '\0';
+    z_head[element] = '\0';
 }
 
 circular_buffer initBuffer(){
@@ -176,7 +195,7 @@ int checkIfSS(circular_buffer savebuffer){
 }
 
 /*
-getAbsPos(int rcv_buf_pos)
+getAbsPos(circular_buffer savebuffer)
 This function calculates pitch(y-rotation) and roll(x-rotation) based on the static acceleration.
 These values are used to "reset" the simulator, and erase any accumulated drift.
 The gyro data sent is always relative to the latest pitch/roll data, again to prevent drift error.
