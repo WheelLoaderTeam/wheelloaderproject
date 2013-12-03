@@ -7,11 +7,12 @@
 #include "init.h"
 void spiInit()
 {
-
-SPCR = (1<<MSTR)|(1<<SPE);
-SPSR = (1<<SPI2X);
-
+	DDRB = (1<<1)|(1<<2)|(1<<4)|(1<<5)|(1<<6);
+	SPCR = (1<<MSTR)|(1<<SPE);
+	SPSR = (1<<SPI2X);
+	PORTB |= (1<<PB4)|(1<<PB5)|(1<<PB6);
 }
+
 void spiSendByte(uint8_t data)
 {
 	SPDR = data;
@@ -24,48 +25,41 @@ void spiSendByte(uint8_t data)
 uint32_t spiTransferAll(uint32_t data, int CS)
 {
 	uint32_t outdata;
-	PORTB &= ~(1<<PB0); //Possibly needed to start CLK
+	PORTB &= ~(1<<PB0);					//Possibly needed to start CLK
 	if (CS == 1)
 	{
-		PORTB &= ~(1<<PB4);	//Set CS1 low
+		PORTB &= ~(1<<PB4);				//Set CS1 low
 	}
 	if (CS == 2)
 	{
-		PORTB &= ~(1<<PB5);	//Set CS2 low
+		PORTB &= ~(1<<PB5);				//Set CS2 low
 	}	 
 	if (CS == 3)
 	{
-		PORTB &= ~(1<<PB6);	//Set CS3 low
+		PORTB &= ~(1<<PB6);				//Set CS3 low
 	}
-	spiSendByte((uint8_t)(data>>24));  //Send most significant byte first
-	spiSendByte((uint8_t)(data>>16));	//Send next byte		
-	spiSendByte((uint8_t)(data>>8));	//Send next byte
-	spiSendByte((uint8_t)data);			//Send last byte
-	
-	
 	outdata = 0;
-	spiSendByte(0x00);
+	spiSendByte((uint8_t)(data>>24));	//Send most significant byte first
 	outdata = ((uint32_t)SPDR)<<24;
-	spiSendByte(0x00);
-	outdata |= ((uint32_t)SPDR)<<16;
-	spiSendByte(0x00);
+	spiSendByte((uint8_t)(data>>16));	//Send next byte
+	outdata |= ((uint32_t)SPDR)<<16;		
+	spiSendByte((uint8_t)(data>>8));	//Send next byte
 	outdata |= ((uint32_t)SPDR)<<8;
-	spiSendByte(0x00);
+	spiSendByte((uint8_t)data);			//Send last byte
 	outdata |= ((uint32_t)SPDR);
-		if (CS == 1)
-		{
-			PORTB |= (1<<PB4);	//Set CS1 low
-		}
-		if (CS == 2)
-		{
-			PORTB |= (1<<PB5);	//Set CS2 low
-		}
-		if (CS == 3)
-		{
-			PORTB |= (1<<PB6);	//Set CS3 low
-		}
-		
-		PORTB |= (1<<PB0);
+	if (CS == 1)
+	{
+		PORTB |= (1<<PB4);				//Set CS1 high
+	}
+	if (CS == 2)
+	{
+		PORTB |= (1<<PB5);				//Set CS2 high
+	}
+	if (CS == 3)
+	{
+		PORTB |= (1<<PB6);				//Set CS3 high
+	}
+	PORTB |= (1<<PB0);
 	return outdata;
 }
 	

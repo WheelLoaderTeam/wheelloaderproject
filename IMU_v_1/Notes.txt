@@ -1,0 +1,22 @@
+
+Problem med IMU, lösningar:
+
+	Bryt dataledning mellan CPU och USB, lägg motstånd i serie (2.2k)
+
+	Mata USB från regulatorn
+
+
+
+
+USB får ej anslutas först!!!
+
+
+
+
+Kolla upp:
+
+	Hur ska man köra gyron utan self-test?
+
+	Hur kör man med self-test?
+
+	Specifikt: timings gällande start och tid mellan sändningar

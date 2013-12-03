@@ -4,7 +4,7 @@
 #include <math.h> 				//asin
 #define SS_CHECKFREQUENCY 5		//ss = StationaryState
 #define SS_DELTATHRESHOLD 0.50
-#define NUM_OF_SS_RECORDS 200   //At 100 hz = 2 seconds of data NOTE!!! circular_buffer.num_valid_rec must cap here!!!
+#define NUM_OF_SS_RECORDS 200   //At 100 hz = 2 seconds of data 
 #define DELAY_LENGTH      250   //Length measured in # of records i.e 250 records = 2.5 sec
 #define END_RCV_BUF    	  1023	//Adjust depending on size of buffer
 #define BEGIN_RCV_BUF     0
@@ -12,6 +12,7 @@
 #define TRUE              1
 #define FALSE             0
 #define BYTES_PER_PACKET  32   
+#define STARTUP_LENGTH    250    //Number of records to write into the save buffer upon startup.
 
 typedef struct{
     int last_write_pos;
@@ -45,36 +46,53 @@ typedef struct{
 }packet_load;
 packet_load recvData();
 
-
-int parseFile(char *filename);
 int checkIfSS(circular_buffer savebuffer);
 abs_pos getAbsPos(circular_buffer savebuffer);
 gyro_bias getGyroBias(circular_buffer savebuffer);
+circular_buffer initBuffer();
 void sendData(packet_load packet_old, packet_load packet_new, gyro_bias bias, packet_header header, char ss_flag);
 void sendAccData();
+circular_buffer writeToBuffer(circular_buffer savebuffer, packet_load packet_new);
+void clearBufferElement(int element);
 
 int main(int argc, char *argv[]) {
-	int rcv_buf_pos;
 	int counter = 0;
     char ss_flag = FALSE;
     circular_buffer savebuffer;
-    savebuffer.last_write_pos = -1;
-    savebuffer.num_valid_rec = 0;
+    savebuffer = initBuffer();
     packet_header header;
     header.id = 0;
     header.size = BYTES_PER_PACKET;
     packet_load packet_old;
     packet_load packet_new;
-	abs_pos radians; // must think about the best way to initialize these structs. 
+	abs_pos radians;
 	gyro_bias bias;
-    rcv_buf_pos = parseFile(argv[1]);
+    static int start = STARTUP_LENGTH;
+    
+    while (start--) {
+		packet_new = recvData(); //rcvPacket to be written by Jesper
+        savebuffer = writeToBuffer(savebuffer, packet_new);
+        counter++;
+        if(start == 1){
+			if(checkIfSS(savebuffer)){
+				radians = getAbsPos(savebuffer);
+				bias = getGyroBias(savebuffer);
+                start = 0;
+			}
+            else{
+                printf("Tractor must be stationary upon startup for 30 seconds!");
+                start = STARTUP_LENGTH;
+            }
+		}
+    }
+
 
 	while(1){
 		packet_old = packet_new;
 		packet_new = recvData(); //rcvPacket to be written by Jesper
-        writeToBuffer(savebuffer, packet_new);
+        savebuffer = writeToBuffer(savebuffer, packet_new);
 		sendData(packet_old, packet_new, bias, header, ss_flag);
-		counter++;
+		counter++;cd ..
         header.id ++;
 		if(counter == DELAY_LENGTH){
 			counter = 0;
@@ -83,7 +101,7 @@ int main(int argc, char *argv[]) {
 				radians = getAbsPos(savebuffer);
 				bias = getGyroBias(savebuffer);
 				packet_new.rotY = radians.pitch;
-                packet_new.rotX = radians.roll;//Need to modify this to appropriately format packet.
+                packet_new.rotX = radians.roll;
 				sendData(packet_old, packet_new, bias, header, ss_flag);
                 ss_flag = FALSE;
                 header.id ++;
@@ -92,55 +110,49 @@ int main(int argc, char *argv[]) {
 	}
 }
 
-double *x_acc_rcv, *y_acc_rcv, *z_acc_rcv, *x_head_rcv, *y_head_rcv, *z_head_rcv;
+double *x_acc, *y_acc, *z_acc, *x_head, *y_head, *z_head;
 
-int writeToBuffer(circular_buffer savebuffer, packet_load packet_new){
-    //savebuffer.num_valid_rec must have a cap at NUM_OF_SS_RECORDS - 1!
+circular_buffer writeToBuffer(circular_buffer savebuffer, packet_load packet_new){
+    
+    clearBufferElement(savebuffer.last_write_pos + 1);
+    x_acc[savebuffer.last_write_pos + 1] = packet_new.posX;
+    y_acc[savebuffer.last_write_pos + 1] = packet_new.posY;
+    z_acc[savebuffer.last_write_pos + 1] = packet_new.posZ;
+    x_head[savebuffer.last_write_pos + 1] = packet_new.rotX;
+    y_head[savebuffer.last_write_pos + 1] = packet_new.rotY;
+    z_head[savebuffer.last_write_pos + 1] = packet_new.rotZ;
+    savebuffer.last_write_pos ++;
+    if(savebuffer.last_write_pos == END_RCV_BUF){
+        savebuffer.last_write_pos = - 1;
+    }
+    if (savebuffer.num_valid_rec < NUM_OF_SS_RECORDS - 1) {
+        savebuffer.num_valid_rec ++;
+    }
+    return savebuffer;
 }
 
-int parseFile(char *filename) {
-    char buf[1024];
-    char *rcv_ptr;
-    int count, i, n = 0;
-    FILE *f = fopen(filename,"r");
-    
-    //find out the number of lines
-    while (fgets(buf,1024,f)) {
-        n++;
-    }
-    rewind(f);
-    
+void clearBufferElement(int element){
+    x_acc[element]  = '\0';
+    y_acc[element]  = '\0';
+    z_acc[element]  = '\0';
+    x_head[element] = '\0';
+    y_head[element] = '\0';
+    z_head[element] = '\0';
+}
+
+circular_buffer initBuffer(){
+    circular_buffer savebuffer;
+    savebuffer.last_write_pos = -1;
+    savebuffer.num_valid_rec  = -1;
     //allocate memory
-    x_acc_rcv = calloc(n-1,sizeof(double));
-    y_acc_rcv = calloc(n-1,sizeof(double));
-    z_acc_rcv = calloc(n-1,sizeof(double));
-    x_head_rcv = calloc(n-1,sizeof(double));
-    y_head_rcv = calloc(n-1,sizeof(double));
-    z_head_rcv = calloc(n-1,sizeof(double));
+    x_acc = calloc(END_RCV_BUF,sizeof(float));
+    y_acc = calloc(END_RCV_BUF,sizeof(float));
+    z_acc = calloc(END_RCV_BUF,sizeof(float));
+    x_head = calloc(END_RCV_BUF,sizeof(float));
+    y_head = calloc(END_RCV_BUF,sizeof(float));
+    z_head = calloc(END_RCV_BUF,sizeof(float));
     
-    //ignore first line
-    fgets(buf,1024,f);
-    
-    //read the data
-    for (i = 0; i<n-1; i++) {
-        fgets(buf,1024,f);
-        rcv_ptr = buf;
-        count = 0;
-        while (count < 11) {
-            if (*rcv_ptr == ',')
-                count++;
-            rcv_ptr++;
-        }
-        sscanf(rcv_ptr,"%lf,%lf,%lf,%lf,%lf,%lf,",&x_acc_rcv[i],&y_acc_rcv[i],&z_acc_rcv[i],
-               &x_head_rcv[i],&y_head_rcv[i],&z_head_rcv[i]);
-    }
-    
-    /*//test
-    for (i = 0; i<n-1; i++) {
-        printf("%lf,%lf,%lf,%lf,%lf,%lf\n",x_acc_rcv[i],y_acc_rcv[i],z_acc_rcv[i],
-               x_head_rcv[i],y_head_rcv[i],z_head_rcv[i]);
-    }*/
-	return n-2;
+    return savebuffer;
 }
 
 /*
@@ -153,17 +165,20 @@ int checkIfSS(circular_buffer savebuffer){
 	double x_min = DBL_MAX, x_max = -1 * DBL_MAX;
 	double y_min = DBL_MAX, y_max = -1 * DBL_MAX;
 	double z_min = DBL_MAX, z_max = -1 * DBL_MAX;
-    
+    if (num_records < 5) {
+        printf("Insufficient data to determine if system is stationary\n");
+		return 0;
+    }
 	while( num_records != -1){
 		if(readindice == BEGIN_RCV_BUF - 1){
 			readindice = END_RCV_BUF;
 		}
-		if(x_acc_rcv[readindice] > x_max){x_max = x_acc_rcv[readindice];}
-		if(x_acc_rcv[readindice] < x_min){x_min = x_acc_rcv[readindice];}
-		if(y_acc_rcv[readindice] > y_max){y_max = y_acc_rcv[readindice];}
-		if(y_acc_rcv[readindice] < y_min){y_min = y_acc_rcv[readindice];}
-		if(z_acc_rcv[readindice] > z_max){z_max = z_acc_rcv[readindice];}
-		if(z_acc_rcv[readindice] < z_min){z_min = z_acc_rcv[readindice];}
+		if(x_acc[readindice] > x_max){x_max = x_acc[readindice];}
+		if(x_acc[readindice] < x_min){x_min = x_acc[readindice];}
+		if(y_acc[readindice] > y_max){y_max = y_acc[readindice];}
+		if(y_acc[readindice] < y_min){y_min = y_acc[readindice];}
+		if(z_acc[readindice] > z_max){z_max = z_acc[readindice];}
+		if(z_acc[readindice] < z_min){z_min = z_acc[readindice];}
 		readindice--;
 	}
 	//test
@@ -182,7 +197,7 @@ int checkIfSS(circular_buffer savebuffer){
 }
 
 /*
-getAbsPos(int rcv_buf_pos)
+getAbsPos(circular_buffer savebuffer)
 This function calculates pitch(y-rotation) and roll(x-rotation) based on the static acceleration.
 These values are used to "reset" the simulator, and erase any accumulated drift.
 The gyro data sent is always relative to the latest pitch/roll data, again to prevent drift error.
@@ -191,26 +206,26 @@ Called when the system is determined to be at rest.
 abs_pos getAbsPos(circular_buffer savebuffer){
     int num_records = savebuffer.num_valid_rec;
     int readindice = savebuffer.last_write_pos;
-	double x_acc_rcvavg = 0, y_acc_rcvavg = 0;
+	double x_accavg = 0, y_accavg = 0;
 	abs_pos radians;
 
 	while( num_records != -1){
 		if(readindice == BEGIN_RCV_BUF - 1){
 			readindice = END_RCV_BUF;
 		}
-		x_acc_rcvavg+= x_acc_rcv[readindice];
-		y_acc_rcvavg+= y_acc_rcv[readindice];
+		x_accavg+= x_acc[readindice];
+		y_accavg+= y_acc[readindice];
 		readindice--;
         num_records--;
 	}
 
-	x_acc_rcvavg = (x_acc_rcvavg/savebuffer.num_valid_rec);
-	y_acc_rcvavg = (y_acc_rcvavg/savebuffer.num_valid_rec);
-	radians.pitch = asin (y_acc_rcvavg);
-	radians.roll  = asin (x_acc_rcvavg);
+	x_accavg = (x_accavg/savebuffer.num_valid_rec);
+	y_accavg = (y_accavg/savebuffer.num_valid_rec);
+	radians.pitch = asin (y_accavg);
+	radians.roll  = asin (x_accavg);
 	//Test
-	printf("Angle in degrees of pitch: %lf, and roll: %lf\n x_acc_rcvavg: %lf y_acc_rcvavg: %lf\n", 
-			(radians.pitch * (180/3.14159)), (radians.roll * (180/3.14159)), x_acc_rcvavg, y_acc_rcvavg);
+	printf("Angle in degrees of pitch: %lf, and roll: %lf\n x_accavg: %lf y_accavg: %lf\n", 
+			(radians.pitch * (180/3.14159)), (radians.roll * (180/3.14159)), x_accavg, y_accavg);
 	return radians;
 }
 
@@ -229,9 +244,9 @@ gyro_bias getGyroBias(circular_buffer savebuffer){
 		if(readindice == BEGIN_RCV_BUF - 1){
 			readindice = END_RCV_BUF;
 		}
-		bias.xAxis+= x_head_rcv[readindice];
-		bias.yAxis+= y_head_rcv[readindice];
-		bias.zAxis+= z_head_rcv[readindice];
+		bias.xAxis+= x_head[readindice];
+		bias.yAxis+= y_head[readindice];
+		bias.zAxis+= z_head[readindice];
 		readindice--;
         num_records--;
 	};
@@ -260,7 +275,17 @@ void sendData(packet_load packet_old, packet_load packet_new, gyro_bias bias, pa
         packet_to_send.rotX = (packet_old.rotX + (packet_new.rotX - (bias.xAxis * GYRO_POINTS_PER_PCKT)));
         packet_to_send.rotY = (packet_old.rotY + (packet_new.rotY - (bias.yAxis * GYRO_POINTS_PER_PCKT)));
     }
-
+    /*
+     One packet contains the following data, to be sent in this order. 
+     header.id
+     header.size
+     packet_to_send.rotX
+     packet_to_send.rotY
+     packet_to_send.rotZ
+     packet_to_send.posX
+     packet_to_send.posY
+     packet_to_send.posZ
+    */
 }
 
 
@@ -279,6 +304,5 @@ void sendAccData(){
  */
  
 packet_load recvData(){
-    
     
 }
