@@ -66,33 +66,33 @@ int main(void)
 
 	gyroZ = spiTransferAll(0x20000000,1);
 	_delay_ms(0.1);
-	/*
-	gyroX = spiTransferAll(0xA0000003,2);
+	
+	gyroX = spiTransferAll(0x20000003,2);
 	_delay_ms(50);
 
-	gyroX = spiTransferAll(0xA0000000,2);
+	gyroX = spiTransferAll(0x20000000,2);
 	_delay_ms(50);
 
-	gyroX = spiTransferAll(0xA0000000,2);
+	gyroX = spiTransferAll(0x20000000,2);
 	//Future: See if self-test was correct
 	_delay_ms(0.1);
 
-	gyroX = spiTransferAll(0xA0000000,2);
+	gyroX = spiTransferAll(0x20000000,2);
 	_delay_ms(0.1);
 	
-	gyroY = spiTransferAll(0x30000003,3);
+	gyroY = spiTransferAll(0x20000003,3);
 	_delay_ms(50);
 
-	gyroY = spiTransferAll(0x30000000,3);
+	gyroY = spiTransferAll(0x20000000,3);
 	_delay_ms(50);
 
-	gyroY = spiTransferAll(0x30000000,3);
+	gyroY = spiTransferAll(0x20000000,3);
 	//Future: See if self-test was correct
 	_delay_ms(0.1);
 
-	gyroY = spiTransferAll(0x30000000,3);
+	gyroY = spiTransferAll(0x20000000,3);
 	_delay_ms(0.1);
-	*/
+	
 	sei();
 
     while(1)
@@ -101,23 +101,22 @@ int main(void)
 		usart_send(0x00);
 		usart_send(0x00);
 		usart_send(0x00);
- 		/*gyroX = spiTransferAll(0xA0000000,2);
+ 		gyroX = spiTransferAll(0x20000000,2);
 		_delay_ms(0.1);
-		gyroX = spiTransferAll(0xA0000000,2);
+		gyroX = spiTransferAll(0x20000000,2);
 		_delay_ms(0.1);
 		usart_send((uint8_t)(gyroX>>24)); //Send most significant byte first
 		usart_send((uint8_t)(gyroX>>16));	//Send next byte
 		usart_send((uint8_t)(gyroX>>8));				//Send next byte
 		usart_send((uint8_t)gyroX);					//Send last byte
-		gyroY = spiTransferAll(0x30000000,3);
+		gyroY = spiTransferAll(0x20000000,3);
 		_delay_ms(0.1);
-		gyroY = spiTransferAll(0x30000000,3);
+		gyroY = spiTransferAll(0x20000000,3);
 		_delay_ms(0.1);
 		usart_send((uint8_t)(gyroY>>24)); //Send most significant byte first
 		usart_send((uint8_t)(gyroY>>16));	//Send next byte
 		usart_send((uint8_t)(gyroY>>8));				//Send next byte
-		usart_send((uint8_t)gyroY);*/
-		 _delay_ms(500);
+		usart_send((uint8_t)gyroY);
 		gyroZ = spiTransferAll(0x20000000,1);
 		_delay_ms(0.1);
 		gyroZ = spiTransferAll(0x20000000,1);
@@ -126,21 +125,21 @@ int main(void)
 		usart_send((uint8_t)(gyroZ>>16));	//Send next byte
 		usart_send((uint8_t)(gyroZ>>8));				//Send next byte
 		usart_send((uint8_t)gyroZ);
-		/*adc_value = read_adc(0);
-		adc_z_hi = (uint8_t)(adc_value>>8);
-		adc_z_lo = (uint8_t)adc_value;
-		usart_send(adc_z_hi);
-		usart_send(adc_z_lo);
+		adc_value = read_adc(2);
+		adc_x_hi = (uint8_t)(adc_value>>8);
+		adc_x_lo = (uint8_t)adc_value;
+		usart_send(adc_x_hi);
+		usart_send(adc_x_lo);
 		adc_value = read_adc(1);
 		adc_y_hi = (uint8_t)(adc_value>>8);
 		adc_y_lo = (uint8_t)adc_value;
 		usart_send(adc_y_hi);
 		usart_send(adc_y_lo);
-		adc_value = read_adc(2);
-		adc_x_hi = (uint8_t)(adc_value>>8);
-		adc_x_lo = (uint8_t)adc_value;
-		usart_send(adc_x_hi);
-		usart_send(adc_x_lo);*/
+		adc_value = read_adc(0);
+		adc_z_hi = (uint8_t)(adc_value>>8);
+		adc_z_lo = (uint8_t)adc_value;
+		usart_send(adc_z_hi);
+		usart_send(adc_z_lo);
 	}
 }
 
