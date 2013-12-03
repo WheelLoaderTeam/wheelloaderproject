@@ -1,8 +1,8 @@
 
 #include "onBoardControl.h"
 
-const struct timespec LONG_TIMEOUT = {2, 0};
-const struct timespec SHORT_TIMEOUT = {0, 100000000};
+const struct timespec LONG_TIMEOUT = {5, 0};
+const struct timespec SHORT_TIMEOUT = {1, 100000000};
 
 int main(void){
 	char rcvBuf[255];
@@ -27,10 +27,10 @@ int main(void){
 	
 	//prepare and send stop packet
 	EBUanalogOut analogStop = new_EBUanalogOut;
-	setAnalogOut(&analogStop, 9, 2.5);
-	setAnalogOut(&analogStop, 10, 2.5);
-	setAnalogOut(&analogStop, 11, 2.5);
-	setAnalogOut(&analogStop, 12, 2.5);
+	setAnalogOut(&analogStop, AO_9, 2.5);
+	setAnalogOut(&analogStop, AO_10, 2.5);
+	setAnalogOut(&analogStop, AO_11, 2.5);
+	setAnalogOut(&analogStop, AO_12, 2.5);
 	sendto(s_relays, (char*)&analogStop, sizeof(EBUanalogOut), 0, (struct sockaddr*) &analog_out_socket, slen);
 	
 	//prepare and send relay packet
@@ -46,61 +46,72 @@ int main(void){
 	//setup socket to receve packets from simulator
 	initServerSocket(CMDO_PORT, &s_commandSocket, &commandSocket);
 	
-	//setup filedescriptors for select to wait for.
-	fd_set fs;
-	FD_ZERO(&fs);
-	FD_SET(s_commandSocket, &fs);
-	
 	while(1){
+		//setup filedescriptors for select to wait for.
+		fd_set fs;
+		FD_ZERO(&fs);
+		FD_SET(s_commandSocket, &fs);
+		
 		//wait for packet from simulator
 		int rVal;
+		printf("\tTimeout set to: %lld.%.9ld\n", (long long)timeout.tv_sec, timeout.tv_nsec);
+
 		rVal = pselect(s_commandSocket+1, &fs, NULL, NULL, &timeout, NULL);
 		clock_gettime(CLOCK_REALTIME, &now);
 		if(rVal == 0){ //timeout
+			printf("\n%lld.%.9ld: Select timed out\n", (long long)now.tv_sec, now.tv_nsec);
 			if(bufferEmpty){
 				//send stop packet
-				printf("Sending stop\n");
+				printf("\tSending stop\n");
 				sendto(s_relays, (char*)&analogStop, sizeof(EBUanalogOut), 0, (struct sockaddr*) &analog_out_socket, slen);
-			} else{ //buffer not empty
+			} else { //buffer not empty
 				//send packet in buffer
-				printf("Sending packet in buffer\n");
+				printf("\tSending packet in buffer\n");
 				sendto(s_relays, (char*)&buffer, sizeof(EBUanalogOut), 0, (struct sockaddr*) &analog_out_socket, slen);
 				bufferEmpty = 1;//clear buffer
 			}
 			timeout = LONG_TIMEOUT;
 			timeOflastPacketSent = now;
-		}else{ //incomming packet
+		}else{ //incoming packet
 			recvfrom(s_commandSocket, rcvBuf, 255, 0, (struct sockaddr*) &commandSocket, &slen);
 			memcpy(&comPacket, rcvBuf, sizeof(commandPacket));
-			printf("Command packet receved\n");
+			printf("\n%lld.%.9ld: Command packet %d receved\n", (long long)now.tv_sec, now.tv_nsec, comPacket.packetId);
+
 			if(bufferEmpty){
 				if(tsComp(tsSub(now, timeOflastPacketSent), SHORT_TIMEOUT) == 1){ //(time since last packet sent > short timeout)
 					//send packet imediatly
-					printf("Sending packet imediatly\n");
+					printf("\tSending packet imediatly\n");
 					EBUanalogOut tempPacket;
 					commandPacket2EBUpacket(&comPacket, &tempPacket);
 					sendto(s_relays, (char*)&tempPacket, sizeof(EBUanalogOut), 0, (struct sockaddr*) &analog_out_socket, slen);
 					timeout = LONG_TIMEOUT;
 					timeOflastPacketSent = now;
+					lastPacketID = comPacket.packetId; // save packetID
+				}else if(lastPacketID >= comPacket.packetId){ //ignore out-of-order packets
+					printf("\tPacket out of order, discarding new packet\n");
+					//set remaining time of long timeout
+					timeout = tsSub(tsAdd(timeOflastPacketSent, LONG_TIMEOUT), now);
 				}else{ //(time since last packet sent < short timeout)
 					//put packet in buffer
-					printf("Putting packet in buffer\n");
+					printf("\tPutting packet in buffer\n");
 					commandPacket2EBUpacket(&comPacket, &buffer);
 					lastPacketID = comPacket.packetId;
 					bufferEmpty = 0;
 					//set remaining time of short timeout
-					timeout = tsSub(now, tsAdd(timeOflastPacketSent, SHORT_TIMEOUT));
+					timeout = tsSub(tsAdd(timeOflastPacketSent, SHORT_TIMEOUT), now);
 				}
 			}else{ //buffer not empty
 				if(comPacket.packetId > lastPacketID){//determine witch packet should remain in buffer
 					//put packet in buffer
-					printf("replacing packet in buffer\n");
+					printf("\treplacing packet in buffer\n");
 					commandPacket2EBUpacket(&comPacket, &buffer);
 					lastPacketID = comPacket.packetId;
 					bufferEmpty = 0;
+				}else{
+					printf("\tPacket out of order, discarding new packet\n");
 				}
 				//set remaining time of short timeout
-				timeout = tsSub(now, tsAdd(timeOflastPacketSent, SHORT_TIMEOUT));
+				timeout = tsSub(tsAdd(timeOflastPacketSent, SHORT_TIMEOUT), now);
 			}
 		}
 	}
@@ -109,11 +120,11 @@ int main(void){
 
 int commandPacket2EBUpacket(commandPacket* command, EBUanalogOut* analogEBUpacket){
 	
-	setAnalogOut(analogEBUpacket, 9, command->analog[CLC_LEVER_1]);
-	setAnalogOut(analogEBUpacket, 10, 5-command->analog[CLC_LEVER_1]);
+	setAnalogOut(analogEBUpacket, AO_9, command->analog[CLC_LEVER_1]);
+	setAnalogOut(analogEBUpacket, AO_10, 5-command->analog[CLC_LEVER_1]);
 	
-	setAnalogOut(analogEBUpacket, 11, command->analog[CLC_LEVER_2]);
-	setAnalogOut(analogEBUpacket, 12, 5-command->analog[CLC_LEVER_2]);
+	setAnalogOut(analogEBUpacket, AO_11, command->analog[CLC_LEVER_2]);
+	setAnalogOut(analogEBUpacket, AO_12, 5-command->analog[CLC_LEVER_2]);
 	
 	return 0;
 }
