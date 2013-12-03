@@ -59,8 +59,8 @@ int main(void){
 		float value;
 		for(int i=0; i<24; i++){
 			value = getAnalogIn(&analogIn, i);
-			setAnalogOut(&analogOut, i, value );
-			//setAnalogOut(&analogOut, i, 2.5 );
+			//setAnalogOut(&analogOut, i, value );
+			setAnalogOut(&analogOut, i, 2.5 );
 			printf("A%d= %f\n", (i+1), value);
 		}
 		
