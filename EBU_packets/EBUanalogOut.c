@@ -11,7 +11,6 @@ void setAnalogOut(EBUanalogOut *packet, int channel, float value){
 		intValue = ((value/5) * 65535 + 0.5); //Rounding conversion from float to int.
 	}
 	
-	// The EBU expects the least significant bit first and I MAY have to reverse intValue to achive this.
 	packet->channel[channel] = intValue;	
 }
 
