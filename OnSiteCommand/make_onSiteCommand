@@ -1,0 +1,7 @@
+all: clean onSiteCommand
+
+onSiteCommand:
+	gcc -std=c99 -iquote ../net -iquote ../CommandPackets -o onSiteCommand onSiteCommand.c ../CommandPackets/commandPacket.c ../net/socket.c
+
+clean:
+	rm -rf *.o onSiteCommand

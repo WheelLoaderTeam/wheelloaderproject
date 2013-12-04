@@ -11,7 +11,7 @@
 #include<stdint.h>
 
 #define SERVER "127.0.0.1"
-#define PORT 65401   //The port on which to send data
+#define PORT 65400   //The port on which to send data
 
 void die(char *s)
 {
@@ -56,7 +56,7 @@ int main(void)
         }
         else{
 	    fprintf(stderr, "Packet sent\t");
-            usleep(1000000);
+            usleep(80000);
 	}
 
     }
