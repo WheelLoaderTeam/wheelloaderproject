@@ -202,8 +202,8 @@ int main(){
                 acc_z = acc_z | var;
                 pkg_cntr = 0;               //Reset counter when end of sending is reached
                 // Put everythin in a struct and call processdata ?
-                //ATTENTION! Some of the received data must be sign changed: accX, accY, accZ, rotY, should be inverted
-                printf("%d\n",acc_y);  //Change here what to print
+
+                printf("%d\n",acc_z);  //Change here what to print
             }
         }
     }
