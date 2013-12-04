@@ -1,5 +1,5 @@
 
-#include "onBoardControl.h"
+#include "onBoardCommand.h"
 
 const struct timespec LONG_TIMEOUT = {5, 0};
 const struct timespec SHORT_TIMEOUT = {1, 100000000};
