@@ -10,20 +10,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <linux/serial.h>
-
+#include "receiveSensorData.h"
 
 
 struct termios data;
 int COM1;
 // static acceleration in meters per second^2 and rotation in radians
-typedef struct{
-    float accX;
-    float accY;
-    float accZ;
-    float rotX;
-    float rotY;
-    float rotZ;
-}sensor_data;
+
 
  static int rate_to_constant(int baudrate) {
  #define B(x) case x: return B##x
@@ -97,9 +90,8 @@ void write_USART(char data) {
     write(COM1,&data,1);
 }
 
-
-//sensor_data receiveSensorData(){
 int main(){
+//sensor_data receiveSensorData(){
     sensor_data sensorData;
     COM1 = open_serialport("/dev/ttyUSB0",500000); //Open USB port
    // printf("%d\n",COM1); //Just a test to see if port is opened
@@ -146,11 +138,13 @@ int main(){
         }
         if (correct_pkg == 1){              //If startup has been observed, fill in data
             if (pkg_cntr == 5){             //GyroX, Byte 4 (Check data, and sensor data)
-                if ((var >> 2 )== 0x01){ //Check ST bits to see if data is OK
+                if (((var >> 2 ) == 0x01) | ((var >>2) == 0x05) ){ //Check ST bits to see if data is OK
                     gyro_x = (var<<14);
                 }
                 else{
-                //Error
+                    printf("An error has occured 1 \n");
+                    printf("%d\n", var);
+//                    return 0;               //End here if corrupt data
                 }
             }
             if (pkg_cntr == 6){             //GyroX, Byte 3 (Sensor data)
@@ -161,15 +155,24 @@ int main(){
             }
             if (pkg_cntr == 8){             //GyroX, Byte 1 (Error data)
                 if ((var>>1) != 0x00){      //If any of the error bits are set
-                        //Error
+                    if ((var>>1) == 0x02){  //This "error" is set if value exceeds 512 which is OK, don't know why it exists..
+                        printf("A non-error has occured\n");
+                        printf("%d\n",var);
+                    }
+                    else {
+                        printf("An error has occured 2\n");
+                        printf("%d\n",var);
+//                        return 0;
+                    }
                 }
             }
             if (pkg_cntr == 9){             //GyroY, Byte 4 (Check data, and sensor data)
-                if ((var >> 2) == 0x01){ //Check ST bits to see if data is OK
+                if (((var >> 2 ) == 0x01) | ((var >>2) == 0x05) ){ //Check ST bits to see if data is OK
                         gyro_y = (var<<14);
                 }
                 else{
-                    //Error
+                    printf("An error has occured 3\n");
+                    printf("%d\n", var);
                 }
             }
             if (pkg_cntr == 10){            //GyroY, Byte 3 (Sensor data)
@@ -180,15 +183,24 @@ int main(){
             }
             if (pkg_cntr == 12){            //GyroY, Byte 1 (Error data)
                 if ((var>>1) != 0x00){      //If any of the error bits are set
-                    //Error
+                    if ((var>>1) == 0x02){  //This "error" is set if value exceeds 512 which is OK, don't know why it exists..
+                    printf("A non-error has occured\n");
+                    printf("%d\n",var);
+                    }
+                    else {                      //All else is a real error
+                        printf("An error has occured 4\n");
+                        printf("%d\n",var);
+//                        return 0;
+                    }
                 }
             }
             if (pkg_cntr == 13){            //GyroZ, Byte 4 (Check data, and sensor data)
-                if ((var >> 2) == 0x01){ //Check ST bits to see if data is OK
+                if (((var >> 2 ) == 0x01) | ((var >>2) == 0x05) ) { //Check ST bits to see if data is OK
                     gyro_z = (var<<14);
                 }
                 else{
-                //Error
+                    printf("An error has occured 5\n");
+                    printf("%d\n",var);
                 }
             }
             if (pkg_cntr == 14){            //GyroZ, Byte 3 (Sensor data)
@@ -199,7 +211,15 @@ int main(){
             }
             if (pkg_cntr == 16){            //GyroZ, Byte 1 (Error data)
                 if ((var>>1) != 0x00){      //If any of the error bits are set
-                    //Error
+                    if ((var>>1) == 0x02){  //This "error" is set if value exceeds 512 which is OK, don't know why it exists..
+                    printf("A non-error has occured\n");
+                    printf("%d\n",var);
+                    }
+                    else {                      //All else is a real error
+                        printf("An error has occured 6\n");
+                        printf("%d\n",var);
+//                        return 0;
+                    }
                 }
             }
             if (pkg_cntr == 17){            //AccX, high value
@@ -230,8 +250,7 @@ int main(){
                 sensorData.rotY = -(gyro_y/gyro_scale)*(pi/pi_scale);
                 sensorData.rotZ = (gyro_z/gyro_scale)*(pi/pi_scale);
                 printf("%f\n", sensorData.rotZ);
-//                return sensorData;
-
+          //      return sensorData;
             }
         }
     }

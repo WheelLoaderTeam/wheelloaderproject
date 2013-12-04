@@ -199,7 +199,8 @@ int main(){
             }
             if (pkg_cntr == 16){            //GyroZ, Byte 1 (Error data)
                 if ((var>>1) != 0x00){      //If any of the error bits are set
-                    //Error
+                    printf('An error has occured');
+                    return 0;
                 }
             }
             if (pkg_cntr == 17){            //AccX, high value
@@ -221,16 +222,14 @@ int main(){
                 acc_z = acc_z | var;
                 pkg_cntr = 0;               //Reset counter when end of sending is reached
                 // Put everythin in a struct and call processdata ?
-                //ATTENTION! Some of the received data must be sign changed: accX, accY, accZ, rotY, should be inverted
-               //printf("%d\n",gyro_z);
+                //ATTENTION! Some of the received data must be sign changed: rotY, should be inverted (turns out the acc chip has weird axis-defs)
                 sensorData.accX = (acc_x-Zero_data_x)*(Max_voltage/sensitivity)*gravity/Max_size;
                 sensorData.accY = (acc_y-Zero_data_y)*(Max_voltage/sensitivity)*gravity/Max_size;
                 sensorData.accZ = (acc_z-Zero_data_z)*(Max_voltage/sensitivity)*gravity/Max_size;
                 sensorData.rotX = (gyro_x/gyro_scale)*(pi/pi_scale);
-                sensorData.rotY = (gyro_y/gyro_scale)*(pi/pi_scale);
+                sensorData.rotY = -(gyro_y/gyro_scale)*(pi/pi_scale);
                 sensorData.rotZ = (gyro_z/gyro_scale)*(pi/pi_scale);
                 printf("%f\n", sensorData.rotX);
-
             }
         }
     }

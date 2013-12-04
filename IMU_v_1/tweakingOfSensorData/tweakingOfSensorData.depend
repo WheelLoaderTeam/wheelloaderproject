@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1386173508 source:/home/trogdor/wheelloaderproject/receiveSensorData/main.c
+1386165044 source:/home/trogdor/wheelloaderproject/IMU_v_1/tweakingOfSensorData/main.c
 	<stdlib.h>
 	<stdint.h>
 	<fcntl.h>
