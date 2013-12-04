@@ -1,0 +1,25 @@
+all: clean EBUtest2
+
+EBUtest2: EBUtest2.c EBUrelays.o EBUanalogIn.o EBUanalogOut.o EBUdigitalIn.o EBUdigitalOut.o socket.o
+	gcc -std=c99 -iquote ../net -o EBUtest2 EBUtest2.c EBUrelays.o EBUanalogIn.o EBUanalogOut.o EBUdigitalIn.o EBUdigitalOut.o socket.o
+
+EBUrelays.o:EBUrelays.c EBUrelays.h
+	gcc -std=c99 -c EBUrelays.c
+
+EBUanalogIn.o: EBUanalogIn.c EBUanalogIn.h
+	gcc -std=c99 -c EBUanalogIn.c
+
+EBUanalogOut.o: EBUanalogOut.c EBUanalogOut.h
+	gcc -std=c99 -c EBUanalogOut.c
+
+EBUdigitalIn.o: EBUdigitalIn.c EBUdigitalIn.h
+	gcc -std=c99 -c EBUdigitalIn.c
+
+EBUdigitalOut.o: EBUdigitalOut.c EBUdigitalOut.h
+	gcc -std=c99 -c EBUdigitalOut.c
+
+socket.o: ../net/socket.c ../net/socket.h
+	gcc -std=c99 -c ../net/socket.c
+
+clean:
+	rm -rf *.o EBUtest2
