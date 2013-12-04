@@ -230,6 +230,7 @@ int main(){
                 sensorData.rotY = (gyro_y/gyro_scale)*(pi/pi_scale);
                 sensorData.rotZ = (gyro_z/gyro_scale)*(pi/pi_scale);
                 printf("%f\n", sensorData.rotX);
+                return sensorData;
 
             }
         }
