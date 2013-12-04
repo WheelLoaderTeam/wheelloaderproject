@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <linux/serial.h>
 
-
+/*Code for reading ADC(acc)-values sent from IMU, code on IMU needs to be changed in order for this to work*/
 
 struct termios data;
 int COM1;
