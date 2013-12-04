@@ -11,19 +11,10 @@
 #include <sys/stat.h>
 #include <linux/serial.h>
 
-
+/*Function to read in all the data as 16 bits values, then printing what you want on screen*/
 
 struct termios data;
 int COM1;
-// static acceleration in meters per second^2 and rotation in radians
-typedef struct{
-    float accX;
-    float accY;
-    float accZ;
-    float rotX;
-    float rotY;
-    float rotZ;
-}sensor_data;
 
  static int rate_to_constant(int baudrate) {
  #define B(x) case x: return B##x
@@ -98,8 +89,7 @@ void write_USART(char data) {
 }
 
 
-sensorData receiveSensorData(){
-    sensor_data sensorData;
+int main(){
     COM1 = open_serialport("/dev/ttyUSB0",500000); //Open USB port
    // printf("%d\n",COM1); //Just a test to see if port is opened
     unsigned char var;
@@ -212,9 +202,8 @@ sensorData receiveSensorData(){
                 acc_z = acc_z | var;
                 pkg_cntr = 0;               //Reset counter when end of sending is reached
                 // Put everythin in a struct and call processdata ?
-               //printf("%d\n",gyro_z);
-                sensorData.accX =
-                return sensorData;
+                //ATTENTION! Some of the received data must be sign changed: accX, accY, accZ, rotY, should be inverted
+                printf("%d\n",acc_y);  //Change here what to print
             }
         }
     }

@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
 		packet_new = recvData(); //rcvPacket to be written by Jesper
         savebuffer = writeToBuffer(savebuffer, packet_new);
 		sendData(packet_old, packet_new, bias, header, ss_flag);
-		counter++;cd ..
+		counter++;
         header.id ++;
 		if(counter == DELAY_LENGTH){
 			counter = 0;
@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
 	}
 }
 
-double *x_acc, *y_acc, *z_acc, *x_head, *y_head, *z_head;
+float *x_acc, *y_acc, *z_acc, *x_head, *y_head, *z_head;
 
 circular_buffer writeToBuffer(circular_buffer savebuffer, packet_load packet_new){
     
