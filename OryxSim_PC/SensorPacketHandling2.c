@@ -41,11 +41,16 @@ int main(int argc, char *argv[]){
     {
         oldData[1].values[i]=0;
     }
+    SensorData toBeSend;
 
     //file descriptor for the input socket
     fd_set rfds;
+
+    struct timespec spec;
+    long timeOfLastPacketSend;
     long sec=0;
-    long  usec = (long)(1.0/freq * 1000000.0);
+    long  usec = (long)(1.0 / freq * 1000000.0);
+    long currentTime;
 
 
        // init the sockets
@@ -53,8 +58,7 @@ int main(int argc, char *argv[]){
     {
         printf ("init success\n");
     }
-    struct timespec spec;
-    long timeOfLastPacketSend;
+
 
     while(1){
 
@@ -65,6 +69,7 @@ int main(int argc, char *argv[]){
             FD_SET(s_onBoard, &rfds);
             if (FD_ISSET(s_onBoard, &rfds))
                 printf("rfds set, beginning the loop\n");
+
 
             tv.tv_sec   = sec;
             tv.tv_usec  = usec;
@@ -112,32 +117,51 @@ int main(int argc, char *argv[]){
                     // save the packet into old buf
                     oldData[1] = oldData[0];
                     oldData[0] = data;
+                    toBeSend = oldData[0];
                     printf("data in order\n");
+                    printf("oldData[0] : %d\t%d\t",oldData[0].id,oldData[0].psize);
+                    int i;
+                    for (i=0; i<LEN_BUF_SENSOR-2; i++)
+                    {
+                        if (i<LEN_BUF_SENSOR-3)
+                        {
+                            printf("%f\t",oldData[0].values[i]);
+                        }
+                        else
+                            printf("%f\n",oldData[0].values[i]);
+                    }
 
 
                 }
                 //calcul of remaining time
                 clock_gettime(CLOCK_REALTIME, &spec);
-                usec = spec.tv_sec*1000000 + spec.tv_nsec / 1000 -timeOfLastPacketSend;//relative to time when the last packet was sent!!!
-                printf("waiting until sending for %ld ms\n",usec);
+                currentTime = spec.tv_sec*1000000 + spec.tv_nsec / 1000;//relative to time when the last packet was sent!!!
+                printf("current time is %ld ms\n",sec*1000+currentTime/1000);
+                usec = currentTime - timeOfLastPacketSend;
+                printf("usec = %ld\n",usec);
+
                 // if TIMEOUT is close send directly the packet and reset the TIMEOUT
-                if (firstPacket)
+                if (firstPacket == true)
                 {
                     firstPacket = false;
-                    if (sendto(s_sim, &oldData[0], sizeof(SensorData) , 0 , (struct sockaddr *) &outsock, slen)==-1)
+                    int bitsSent;
+                    if ((bitsSent = sendto(s_sim, &toBeSend, sizeof(SensorData) , 0 , (struct sockaddr *) &outsock, slen) )==-1)
                         {
                             die("sendto()");
                         }
-                    timeOfLastPacketSend = usec;
+
+                    printf("firstPacket false and first packet send : return=> %d\n", bitsSent);
+                    timeOfLastPacketSend = currentTime;
                     usec = (long)(1.0 / freq * 1000000);
+                    printf("usec = %ld",usec);
                     continue;
                 }
                 if (usec < 100)
                 {
-                    if (sendto(s_sim, &oldData[0], sizeof(SensorData) , 0 , (struct sockaddr *) &outsock, slen)==-1)
-                        {
-                            die("sendto()");
-                        }
+                    if (sendto(s_sim, &toBeSend, sizeof(SensorData) , 0 , (struct sockaddr *) &outsock, slen)==-1)
+                    {
+                        die("sendto()");
+                    }
                     printf("packet send before timeout");
                     // date the start of the recvfrom function
                     clock_gettime(CLOCK_REALTIME, &spec);
@@ -145,6 +169,7 @@ int main(int argc, char *argv[]){
                     printf("current time: %ld us since epoch\n",timeOfLastPacketSend);
                     sec = 0;
                     usec = (long)(1.0 / freq * 1000000);
+                    continue;
 
                 }
 
@@ -153,11 +178,11 @@ int main(int argc, char *argv[]){
             }
             else if (retval== 0 && packetPending==true)
             {
-                if (sendto(s_sim, &oldData[0], sizeof(SensorData) , 0 , (struct sockaddr *) &outsock, slen)==-1)
+                if (sendto(s_sim, &toBeSend, sizeof(SensorData) , 0 , (struct sockaddr *) &outsock, slen)==-1)
                         {
                             die("sendto()");
                         }
-                    printf("packet send");
+                    printf("packet send\n");
                     // date the start of the recvfrom function
                     clock_gettime(CLOCK_REALTIME, &spec);
                     timeOfLastPacketSend = spec.tv_sec*1000000+spec.tv_nsec/1000;
@@ -180,7 +205,7 @@ int main(int argc, char *argv[]){
                         {
                             die("sendto()");
                         }
-                    printf("packet send");
+                    printf("packet send\n");
                     // date the start of the recvfrom function
                     clock_gettime(CLOCK_REALTIME, &spec);
                     timeOfLastPacketSend = spec.tv_sec*1000000+spec.tv_nsec/1000;
