@@ -227,14 +227,15 @@ int main(){
                 sensorData.accY = (acc_y-Zero_data_y)*(Max_voltage/sensitivity)*gravity/Max_size;
                 sensorData.accZ = (acc_z-Zero_data_z)*(Max_voltage/sensitivity)*gravity/Max_size;
                 sensorData.rotX = (gyro_x/gyro_scale)*(pi/pi_scale);
-                sensorData.rotY = -(gyro_y/gyro_scale)*(pi/pi_scale);
+                sensorData.rotY = (gyro_y/gyro_scale)*(pi/pi_scale);
                 sensorData.rotZ = (gyro_z/gyro_scale)*(pi/pi_scale);
-                printf("%f\n", sensorData.rotZ);
-//                return sensorData;
+                printf("%f\n", sensorData.rotX);
 
             }
         }
     }
+    return 0;
+
 }
 
 //int i;
