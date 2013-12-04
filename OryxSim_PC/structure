@@ -1,7 +1,15 @@
+#include <stdio.h>
+
+
 void eventloop() {
     // create & bind a new socket
     // new timeval for timeout
     // char packetPending, packet buffer oldData[0] and oldData[1]
+    // long timeOfLastPacketSent
+    // bool firstPacket = true
+
+    
+    // timeout = 10 ms
     while(1) {
         select()
 
@@ -9,17 +17,26 @@ void eventloop() {
         // if timeout AND packet pending
         //      send the packet
         //      reset timeout to 10 ms
+        //      timeOfLastPacketSend = getCurTime()
 
         
         // if timeout AND no packet pending
         //      extrapolate from old data
-        //      send the packet packetpending to false
+        //      send the packet
         //      reset timeout to 10 ms
+        //      timeOfLastPacketSend = getCurTime()
 
-        
+       s 
         // if new packet
-        //      recvFrom() to read the packet put packet pending to true
+        //      recvFrom() to read the packet
         //      check packet ID and maybe put it in the buffer as oldData[0] or oldData[1]
-        //      re-calculate timeout until next send (if very small, send the packet now)
+        //      time = getCurTime()
+        //      if (firstPacket) { firstPacket = false; sendPacket; timeOfLastPacketSend = time;
+        //                         set timeout to 10 ms; continue }
+        //      timeout = time - timeOfLastPacketSent;
+        //      if (timeout < 100 us) {sendPacket; timeOfLastPacketSend = time; set timeout to 10 ms }
     }
 }
+
+
+
