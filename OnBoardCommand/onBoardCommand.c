@@ -1,8 +1,8 @@
 
-#include "onBoardControl.h"
+#include "onBoardCommand.h"
 
-const struct timespec LONG_TIMEOUT = {5, 0};
-const struct timespec SHORT_TIMEOUT = {1, 100000000};
+const struct timespec LONG_TIMEOUT = {2, 0};
+const struct timespec SHORT_TIMEOUT = {0, 100000000};
 
 int main(void){
 	char rcvBuf[255];

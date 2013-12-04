@@ -11,19 +11,10 @@
 #include <sys/stat.h>
 #include <linux/serial.h>
 
-
+/*Function to read in all the data as 16 bits values, then printing what you want on screen*/
 
 struct termios data;
 int COM1;
-// static acceleration in meters per second^2 and rotation in radians
-typedef struct{
-    float accX;
-    float accY;
-    float accZ;
-    float rotX;
-    float rotY;
-    float rotZ;
-}sensor_data;
 
  static int rate_to_constant(int baudrate) {
  #define B(x) case x: return B##x
@@ -98,9 +89,7 @@ void write_USART(char data) {
 }
 
 
-//sensor_data receiveSensorData(){
 int main(){
-    sensor_data sensorData;
     COM1 = open_serialport("/dev/ttyUSB0",500000); //Open USB port
    // printf("%d\n",COM1); //Just a test to see if port is opened
     unsigned char var;
@@ -111,16 +100,8 @@ int main(){
     int16_t gyro_x;
     int16_t gyro_y;
     int16_t gyro_z;
-    int16_t Max_size = 0x03FF;
-    float Max_voltage = 3.3f;
-    uint16_t Zero_data_x = 0x01FD;
-    uint16_t Zero_data_y = 0x01FF;
-    uint16_t Zero_data_z = 0x01FD;
-    float sensitivity = 0.192f;
-    float gravity = 9.82f;
-    float pi = 3.14159f;
-    int gyro_scale = 80;
-    int pi_scale = 180;
+
+
     int pkg_cntr = 0;                       //Counter to keep track of packets
     int correct_pkg = 0;                    //Flag to see if in right place or not, 0 if startup haven't been observed, 1 if all is OK (?)
     while(1) {
@@ -221,16 +202,8 @@ int main(){
                 acc_z = acc_z | var;
                 pkg_cntr = 0;               //Reset counter when end of sending is reached
                 // Put everythin in a struct and call processdata ?
-                //ATTENTION! Some of the received data must be sign changed: accX, accY, accZ, rotY, should be inverted
-               //printf("%d\n",gyro_z);
-                sensorData.accX = (acc_x-Zero_data_x)*(Max_voltage/sensitivity)*gravity/Max_size;
-                sensorData.accY = (acc_y-Zero_data_y)*(Max_voltage/sensitivity)*gravity/Max_size;
-                sensorData.accZ = (acc_z-Zero_data_z)*(Max_voltage/sensitivity)*gravity/Max_size;
-                sensorData.rotX = (gyro_x/gyro_scale)*(pi/pi_scale);
-                sensorData.rotY = (gyro_y/gyro_scale)*(pi/pi_scale);
-                sensorData.rotZ = (gyro_z/gyro_scale)*(pi/pi_scale);
-                printf("%f\n", sensorData.rotX);
 
+                printf("%d\n",acc_z);  //Change here what to print
             }
         }
     }
