@@ -1,5 +1,5 @@
-#ifndef __PARSE_H_
-#define __PARSE_H_
+#ifndef __PROCESSDATA_H_
+#define __PROCESSDATA_H_
 
 // used for managemnet of a circular buffer
 typedef struct{
