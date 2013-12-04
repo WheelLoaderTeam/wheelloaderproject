@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <float.h> 				//Do we need?
 #include <math.h> 				//asin
-#include "parse.h"
+#include "processdata.h"
 #include "../OryxSim_PC/sensorData.h"
 
 #define SENSOR_FREQ             100     // expected sensor frequency in Hz
