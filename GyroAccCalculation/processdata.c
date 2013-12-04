@@ -2,9 +2,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <float.h> 				//DBL_MAX
+#include <float.h> 				//Do we need?
 #include <math.h> 				//asin
 #include "parse.h"
+#include "../OryxSim_PC/sensorData.h"
 
 #define SENSOR_FREQ             100     // expected sensor frequency in Hz
 #define BUF_SIZE                1024	// size of circular buffer
@@ -34,7 +35,7 @@ bias acc_bias;
 
 int processData(sensor_data *data);
 sensor_data receiveSensorData();
-void sendSensorData(sensor_data *data);
+void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in outsock, int slen);
 
 int checkIfSS();
 abs_pos getAbsPos();
@@ -46,13 +47,16 @@ void writeToBuffer(sensor_data *data);
 
 /*** FUNCTION CODE ***/
 int main(int argc, char *argv[]) {
+    struct sockaddr_in outsock;
+    int s_out_sensordata, slen = sizeof(struct sockaddr_in);
+    initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
     sensor_data data;
     initBuffer();
     while(1) {
         data = receiveSensorData();
         writeToBuffer(&data);
         if (processData(&data))
-            sendSensorData(&data);
+            sendSensorData(&data, s_out_sensordata, outsock, slen);
     }
     return 0;
 }
@@ -105,10 +109,12 @@ int processData(sensor_data *data) {
     return 1;
 }
 
-void sendSensorData(sensor_data *data) {
+void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in outsock, int slen) {
     static int id = 0;
     packet_header header = {id++,6}; // size = 6 OR 6*4 OR 8 OR 8*4 ???
     packet_load load;
+    
+    header.id;
     
     load.posX = (data->accX - acc_bias.xAxis) * K;
     load.posY = (data->accY - acc_bias.yAxis) * K;
@@ -118,7 +124,20 @@ void sendSensorData(sensor_data *data) {
     load.rotY = radians_curr.pitch;
     load.rotZ = 0;
     
-    //TODO: send a packet over the network
+    //send a packet over the network
+    SensorData send_data;
+    send_data.id = header.id;
+    send_data.psize = 32;
+    send_data.values[0] = load.posX;
+    send_data.values[1] = load.posY;
+    send_data.values[2] = load.posZ;
+    send_data.values[3] = load.rotX;
+    send_data.values[4] = load.rotY;
+    send_data.values[5] = load.rotZ;
+    if (sendto(s_out_sensordata, &send_data, sizeof(SensorData) , 0 , (struct sockaddr *) &outsock, slen)==-1)
+    {
+        die("sendto(), processdata.c line 139");
+    }
 }
 
 
