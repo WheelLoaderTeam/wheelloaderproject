@@ -1,0 +1,39 @@
+# depslib dependency file v1.0
+1386239007 source:/home/wlt-pc/wheelloaderproject/net/socket.c
+	"socket.h"
+
+1386242005 /home/wlt-pc/wheelloaderproject/net/socket.h
+	<sys/socket.h>
+	<sys/types.h>
+	<netinet/in.h>
+	<stdlib.h>
+	<string.h>
+	<stdio.h>
+	<arpa/inet.h>
+
+1386239007 source:/home/wlt-pc/wheelloaderproject/OryxSim_PC/SensorPacketHandling2.c
+	<sys/time.h>
+	<unistd.h>
+	<time.h>
+	<math.h>
+	<stdbool.h>
+	"sensorData.h"
+
+1386239007 /home/wlt-pc/wheelloaderproject/OryxSim_PC/sensorData.h
+	"../net/socket.h"
+
+1386251623 source:/home/wlt-pc/wheelloaderproject/Process_Send_IMU_Data/processdata.c
+	<stdio.h>
+	<stdint.h>
+	<stdlib.h>
+	<stdbool.h>
+	<float.h>
+	<math.h>
+	"processdata.h"
+	"../OryxSim_PC/sensorData.h"
+	"../receiveSensorData/receiveSensorData.h"
+
+1386251623 /home/wlt-pc/wheelloaderproject/Process_Send_IMU_Data/processdata.h
+
+1386251437 /home/wlt-pc/wheelloaderproject/receiveSensorData/receiveSensorData.h
+
