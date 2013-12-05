@@ -61,7 +61,7 @@ int main(void)
             die("sendto()");
         }
         data.id +=1;
-        usleep(11000);
+        usleep(20000);
 
 
 
