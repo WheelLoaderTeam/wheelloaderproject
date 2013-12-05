@@ -22,8 +22,8 @@ int main(void){
 	socklen_t slen = sizeof(struct sockaddr_in);	
 	int s_relays, s_analog_out, s_commandSocket;
 	
-	initClientSocket(EBU_RELAYS_PORT, &s_relays, EBU1_IP, &relays_socket);
-	initClientSocket(EBU_ANALOG_OUT_PORT, &s_analog_out, EBU1_IP, &analog_out_socket);
+	initClientSocket(EBU_RELAYS_PORT, &s_relays, EBU2_IP, &relays_socket);
+	initClientSocket(EBU_ANALOG_OUT_PORT, &s_analog_out, EBU2_IP, &analog_out_socket);
 	
 	//prepare and send stop packet
 	EBUanalogOut analogStop = new_EBUanalogOut;
@@ -67,6 +67,7 @@ int main(void){
 			} else { //buffer not empty
 				//send packet in buffer
 				printf("\tSending packet in buffer\n");
+				printf("channel 9 = %f \nchannel 10 = %f \nchannel 11 = %f \nchannel 12 = %f\n", getAnalogOut(&buffer, AO_9), getAnalogOut(&buffer, AO_10), getAnalogOut(&buffer, AO_11), getAnalogOut(&buffer, AO_12));
 				sendto(s_relays, (char*)&buffer, sizeof(EBUanalogOut), 0, (struct sockaddr*) &analog_out_socket, slen);
 				bufferEmpty = 1;//clear buffer
 			}
@@ -75,7 +76,8 @@ int main(void){
 		}else{ //incoming packet
 			recvfrom(s_commandSocket, rcvBuf, 255, 0, (struct sockaddr*) &commandSocket, &slen);
 			memcpy(&comPacket, rcvBuf, sizeof(commandPacket));
-			printf("\n%lld.%.9ld: Command packet %d receved\n", (long long)now.tv_sec, now.tv_nsec, comPacket.packetId);
+			printf("\n%lld.%.9ld: Command packet %d receved\n", (long long)now.tv_sec, now.tv_nsec, comPacket.packetId); 
+			printf("lift=%f, tilt=%f\n",comPacket.analog[LEVER_LIFT], comPacket.analog[LEVER_TILT]);
 
 			if(bufferEmpty){
 				if(tsComp(tsSub(now, timeOflastPacketSent), SHORT_TIMEOUT) == 1){ //(time since last packet sent > short timeout)
@@ -119,12 +121,13 @@ int main(void){
 }
 
 int commandPacket2EBUpacket(commandPacket* command, EBUanalogOut* analogEBUpacket){
+	float lift = command->analog[LEVER_LIFT] * 2.5 + 2.5;
+	setAnalogOut(analogEBUpacket, AO_9, lift);
+	setAnalogOut(analogEBUpacket, AO_10, 5-lift);
 	
-	setAnalogOut(analogEBUpacket, AO_9, command->analog[CLC_LEVER_1]);
-	setAnalogOut(analogEBUpacket, AO_10, 5-command->analog[CLC_LEVER_1]);
-	
-	setAnalogOut(analogEBUpacket, AO_11, command->analog[CLC_LEVER_2]);
-	setAnalogOut(analogEBUpacket, AO_12, 5-command->analog[CLC_LEVER_2]);
+	float tilt = command->analog[LEVER_TILT] * 2.5 + 2.5;
+	setAnalogOut(analogEBUpacket, AO_11, tilt);
+	setAnalogOut(analogEBUpacket, AO_12, 5-tilt);
 	
 	return 0;
 }
