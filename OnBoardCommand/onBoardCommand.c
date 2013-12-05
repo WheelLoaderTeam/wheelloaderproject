@@ -67,7 +67,7 @@ int main(void){
 			} else { //buffer not empty
 				//send packet in buffer
 				printf("\tSending packet in buffer\n");
-				printf("channel 9 = %f, channel 10 = %f, channel 11 = %f, channel 12 = %f\n", getAnalogOut(&buffer, AO_9), getAnalogOut(&buffer, AO_10), getAnalogOut(&buffer, AO_11), getAnalogOut(&buffer, AO_12));
+				printf("channel 9 = %f \nchannel 10 = %f \nchannel 11 = %f \nchannel 12 = %f\n", getAnalogOut(&buffer, AO_9), getAnalogOut(&buffer, AO_10), getAnalogOut(&buffer, AO_11), getAnalogOut(&buffer, AO_12));
 				sendto(s_relays, (char*)&buffer, sizeof(EBUanalogOut), 0, (struct sockaddr*) &analog_out_socket, slen);
 				bufferEmpty = 1;//clear buffer
 			}
@@ -121,12 +121,13 @@ int main(void){
 }
 
 int commandPacket2EBUpacket(commandPacket* command, EBUanalogOut* analogEBUpacket){
+	float lift = command->analog[LEVER_LIFT] * 2.5 + 2.5;
+	setAnalogOut(analogEBUpacket, AO_9, lift);
+	setAnalogOut(analogEBUpacket, AO_10, 5-lift);
 	
-	setAnalogOut(analogEBUpacket, AO_9, command->analog[LEVER_LIFT]);
-	setAnalogOut(analogEBUpacket, AO_10, 5-command->analog[LEVER_LIFT]);
-	
-	setAnalogOut(analogEBUpacket, AO_11, command->analog[LEVER_TILT]);
-	setAnalogOut(analogEBUpacket, AO_12, 5-command->analog[LEVER_TILT]);
+	float tilt = command->analog[LEVER_TILT] * 2.5 + 2.5;
+	setAnalogOut(analogEBUpacket, AO_11, tilt);
+	setAnalogOut(analogEBUpacket, AO_12, 5-tilt);
 	
 	return 0;
 }

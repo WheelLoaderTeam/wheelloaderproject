@@ -11,7 +11,7 @@
 #include<stdint.h>
 
 #define SERVER "127.0.0.1"
-#define PORT 65400   //The port on which to send data
+#define PORT 65401   //The port on which to send data
 
 void die(char *s)
 {
@@ -28,7 +28,7 @@ int main(void)
 {
     struct sockaddr_in si_other;
     int s, slen=sizeof(si_other);
-    struct packetFormat packet = {0, sizeof(struct packetFormat), 4.56, 3.50, 1.3, 3.98, 2.5, 4.78, 6.08, 1.90, 2.10, 0};
+    struct packetFormat packet = {0, sizeof(struct packetFormat), 0.1, -0.1, 0.5, -0.5, 0.4, 0.8, 0.3, 0.7, 0.6, -0.2};
 
     if ( (s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
