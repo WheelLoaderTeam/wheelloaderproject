@@ -6,6 +6,7 @@
 #include <math.h> 				//asin
 #include "processdata.h"
 #include "../OryxSim_PC/sensorData.h"
+#include "../receiveSensorData/receiveSensorData.h"
 
 #define SENSOR_FREQ             100     // expected sensor frequency in Hz
 #define BUF_SIZE                1024	// size of circular buffer
@@ -34,7 +35,7 @@ bias acc_bias;
 /*** FUNCTION PROTOTYPES ***/
 
 int processData(sensor_data *data);
-sensor_data receiveSensorData();
+//sensor_data receiveSensorData();
 void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in outsock, int slen);
 
 int checkIfSS();
