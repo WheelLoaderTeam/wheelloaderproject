@@ -31,7 +31,7 @@ abs_pos radians_curr;
 // bias determined when stationary
 bias gyro_bias;
 bias acc_bias;
-
+int COM1;
 /*** FUNCTION PROTOTYPES ***/
 
 int processData(sensor_data *data);
@@ -48,9 +48,11 @@ void writeToBuffer(sensor_data *data);
 
 /*** FUNCTION CODE ***/
 int main(int argc, char *argv[]) {
+    COM1 = open_serialport("/dev/ttyUSB0",500000); //Open USB port
     struct sockaddr_in outsock;
     int s_out_sensordata, slen = sizeof(struct sockaddr_in);
-    initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
+//    initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
+    initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
     sensor_data data;
     initBuffer();
     while(1) {
@@ -63,6 +65,7 @@ int main(int argc, char *argv[]) {
 }
 
 int processData(sensor_data *data) {
+    printf("HI, we're in processData\n"); //This is broken, serves as a delay
     static int start = SS_NUM;
     static int counter = 0;
     static bool biasSet = false;
@@ -111,6 +114,7 @@ int processData(sensor_data *data) {
 }
 
 void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in outsock, int slen) {
+    printf("HI, we're in sendSensorData\n");
     static int id = 0;
     packet_header header = {id++,6}; // size = 6 OR 6*4 OR 8 OR 8*4 ???
     packet_load load;
