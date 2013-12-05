@@ -90,8 +90,8 @@ void write_USART(char data) {
     write(COM1,&data,1);
 }
 
-int main(){
-//sensor_data receiveSensorData(){
+//int main(){
+sensor_data receiveSensorData(){
     sensor_data sensorData;
     COM1 = open_serialport("/dev/ttyUSB0",500000); //Open USB port
    // printf("%d\n",COM1); //Just a test to see if port is opened
@@ -118,7 +118,6 @@ int main(){
     while(1) {
         var = read_USART();
         pkg_cntr++;
-      // printf("%d\n",value); //Test thing
         if (var == 0x00){                   //Check if zero Byte is sent
             if (5 <= pkg_cntr && pkg_cntr <= 22){           //If this is not a part of the "beginning zeroes"
                 correct_pkg = 1;            //Set flag that indicates "correct" package
@@ -142,9 +141,9 @@ int main(){
                     gyro_x = (var<<14);
                 }
                 else{
-                    printf("An error has occured 1 \n");
-                    printf("%d\n", var);
-//                    return 0;               //End here if corrupt data
+//                    printf("An error has occured 1 \n");
+//                    printf("%d\n", var);
+                    return 0;               //End here if corrupt data
                 }
             }
             if (pkg_cntr == 6){             //GyroX, Byte 3 (Sensor data)
@@ -156,13 +155,13 @@ int main(){
             if (pkg_cntr == 8){             //GyroX, Byte 1 (Error data)
                 if ((var>>1) != 0x00){      //If any of the error bits are set
                     if ((var>>1) == 0x02){  //This "error" is set if value exceeds 512 which is OK, don't know why it exists..
-                        printf("A non-error has occured\n");
-                        printf("%d\n",var);
+//                        printf("A non-error has occured\n");
+//                        printf("%d\n",var);
                     }
                     else {
-                        printf("An error has occured 2\n");
-                        printf("%d\n",var);
-//                        return 0;
+//                        printf("An error has occured 2\n");
+//                        printf("%d\n",var);
+                        return 0;
                     }
                 }
             }
@@ -171,8 +170,9 @@ int main(){
                         gyro_y = (var<<14);
                 }
                 else{
-                    printf("An error has occured 3\n");
-                    printf("%d\n", var);
+ //                   printf("An error has occured 3\n");
+ //                   printf("%d\n", var);
+                    return 0;
                 }
             }
             if (pkg_cntr == 10){            //GyroY, Byte 3 (Sensor data)
@@ -184,13 +184,13 @@ int main(){
             if (pkg_cntr == 12){            //GyroY, Byte 1 (Error data)
                 if ((var>>1) != 0x00){      //If any of the error bits are set
                     if ((var>>1) == 0x02){  //This "error" is set if value exceeds 512 which is OK, don't know why it exists..
-                    printf("A non-error has occured\n");
-                    printf("%d\n",var);
+ //                   printf("A non-error has occured\n");
+ //                   printf("%d\n",var);
                     }
                     else {                      //All else is a real error
-                        printf("An error has occured 4\n");
-                        printf("%d\n",var);
-//                        return 0;
+ //                       printf("An error has occured 4\n");
+//                        printf("%d\n",var);
+                        return 0;
                     }
                 }
             }
@@ -199,8 +199,9 @@ int main(){
                     gyro_z = (var<<14);
                 }
                 else{
-                    printf("An error has occured 5\n");
-                    printf("%d\n",var);
+   //                 printf("An error has occured 5\n");
+  //                  printf("%d\n",var);
+                    return 0;
                 }
             }
             if (pkg_cntr == 14){            //GyroZ, Byte 3 (Sensor data)
@@ -212,13 +213,13 @@ int main(){
             if (pkg_cntr == 16){            //GyroZ, Byte 1 (Error data)
                 if ((var>>1) != 0x00){      //If any of the error bits are set
                     if ((var>>1) == 0x02){  //This "error" is set if value exceeds 512 which is OK, don't know why it exists..
-                    printf("A non-error has occured\n");
-                    printf("%d\n",var);
+  //                  printf("A non-error has occured\n");
+ //                   printf("%d\n",var);
                     }
                     else {                      //All else is a real error
-                        printf("An error has occured 6\n");
-                        printf("%d\n",var);
-//                        return 0;
+//                       printf("An error has occured 6\n");
+//                        printf("%d\n",var);
+                        return 0;
                     }
                 }
             }
@@ -241,8 +242,7 @@ int main(){
                 acc_z = acc_z | var;
                 pkg_cntr = 0;               //Reset counter when end of sending is reached
                 // Put everythin in a struct and call processdata ?
-                //ATTENTION! Some of the received data must be sign changed: accX, accY, accZ, rotY, should be inverted
-               //printf("%d\n",gyro_z);
+                //ATTENTION! Some of the received data must be sign changed: rotY, should be inverted (turns out the acc chip has weird axis-defs)
                 sensorData.accX = (acc_x-Zero_data_x)*(Max_voltage/sensitivity)*gravity/Max_size;
                 sensorData.accY = (acc_y-Zero_data_y)*(Max_voltage/sensitivity)*gravity/Max_size;
                 sensorData.accZ = (acc_z-Zero_data_z)*(Max_voltage/sensitivity)*gravity/Max_size;
@@ -250,12 +250,8 @@ int main(){
                 sensorData.rotY = -(gyro_y/gyro_scale)*(pi/pi_scale);
                 sensorData.rotZ = (gyro_z/gyro_scale)*(pi/pi_scale);
                 printf("%f\n", sensorData.rotZ);
-          //      return sensorData;
+                return sensorData;
             }
         }
     }
 }
-
-//int i;
-//for(i=0; i<200;i++)
-//            printf("%d\n",value); //Print out value

@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1386173508 source:/home/trogdor/wheelloaderproject/receiveSensorData/main.c
+1386235026 source:/home/trogdor/wheelloaderproject/receiveSensorData/main.c
 	<stdlib.h>
 	<stdint.h>
 	<fcntl.h>
@@ -12,4 +12,7 @@
 	<sys/types.h>
 	<sys/stat.h>
 	<linux/serial.h>
+	"receiveSensorData.h"
+
+1386168202 /home/trogdor/wheelloaderproject/receiveSensorData/receiveSensorData.h
 
