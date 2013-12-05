@@ -71,10 +71,16 @@
 #define WL_IP "10.0.0.1"
 
 /**
+*\def WL_WIRELESSIP Ip address of wheel loader
+*/
+
+#define WL_WIRELESSIP "192.168.2.101"
+
+/**
 *\def OPC_IP Ip address of the PC next to the Oryx Simulator
 */
 
-#define OPC_IP "10.0.0.4"
+#define OPC_IP "192.168.2.100"
 
 /**
 *\def EBU1_IP Ip address of EBU1
@@ -92,7 +98,7 @@
 *\def SIM_IP Ip address of the Oryx simulator
 */
 
-#define SIM_IP "10.0.0.5" //TODO change with the good IP
+#define SIM_IP "192.168.2.97" //TODO change with the good IP
 
 /**
 *\def LEN_BUF_SENSOR lenght on floats of a sensor data packet ID,size,6*datas
