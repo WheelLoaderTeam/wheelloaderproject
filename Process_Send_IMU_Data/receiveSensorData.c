@@ -143,7 +143,7 @@ sensor_data receiveSensorData(){
                 else{
 //                    printf("An error has occured 1 \n");
 //                    printf("%d\n", var);
-                    return 0;               //End here if corrupt data
+//                    return 0;               //End here if corrupt data
                 }
             }
             if (pkg_cntr == 6){             //GyroX, Byte 3 (Sensor data)
@@ -161,7 +161,7 @@ sensor_data receiveSensorData(){
                     else {
 //                        printf("An error has occured 2\n");
 //                        printf("%d\n",var);
-                        return 0;
+                         correct_pkg = 0;
                     }
                 }
             }
@@ -172,7 +172,7 @@ sensor_data receiveSensorData(){
                 else{
  //                   printf("An error has occured 3\n");
  //                   printf("%d\n", var);
-                    return 0;
+                    correct_pkg = 0;
                 }
             }
             if (pkg_cntr == 10){            //GyroY, Byte 3 (Sensor data)
@@ -190,7 +190,7 @@ sensor_data receiveSensorData(){
                     else {                      //All else is a real error
  //                       printf("An error has occured 4\n");
 //                        printf("%d\n",var);
-                        return 0;
+                        correct_pkg = 0;
                     }
                 }
             }
@@ -201,7 +201,7 @@ sensor_data receiveSensorData(){
                 else{
    //                 printf("An error has occured 5\n");
   //                  printf("%d\n",var);
-                    return 0;
+                    correct_pkg = 0;
                 }
             }
             if (pkg_cntr == 14){            //GyroZ, Byte 3 (Sensor data)
@@ -219,7 +219,7 @@ sensor_data receiveSensorData(){
                     else {                      //All else is a real error
 //                       printf("An error has occured 6\n");
 //                        printf("%d\n",var);
-                        return 0;
+                        correct_pkg = 0;
                     }
                 }
             }
@@ -249,7 +249,7 @@ sensor_data receiveSensorData(){
                 sensorData.rotX = (gyro_x/gyro_scale)*(pi/pi_scale);
                 sensorData.rotY = -(gyro_y/gyro_scale)*(pi/pi_scale);
                 sensorData.rotZ = (gyro_z/gyro_scale)*(pi/pi_scale);
-                printf("%f\n", sensorData.rotZ);
+             //   printf("%f\n", sensorData.rotZ);
                 return sensorData;
             }
         }
