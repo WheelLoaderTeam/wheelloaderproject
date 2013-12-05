@@ -35,7 +35,7 @@ bias acc_bias;
 /*** FUNCTION PROTOTYPES ***/
 
 int processData(sensor_data *data);
-//sensor_data receiveSensorData();
+//sensor_data receiveSensorData(); // declared in receiveSensorData.h, delete upon succsessful compile
 void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in outsock, int slen);
 
 int checkIfSS();
