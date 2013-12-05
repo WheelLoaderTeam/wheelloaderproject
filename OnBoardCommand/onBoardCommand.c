@@ -67,6 +67,7 @@ int main(void){
 			} else { //buffer not empty
 				//send packet in buffer
 				printf("\tSending packet in buffer\n");
+				printf("channel 9 = %f, channel 10 = %f, channel 11 = %f, channel 12 = %f\n", getAnalogOut(&buffer, AO_9), getAnalogOut(&buffer, AO_10), getAnalogOut(&buffer, AO_11), getAnalogOut(&buffer, AO_12));
 				sendto(s_relays, (char*)&buffer, sizeof(EBUanalogOut), 0, (struct sockaddr*) &analog_out_socket, slen);
 				bufferEmpty = 1;//clear buffer
 			}
@@ -75,7 +76,8 @@ int main(void){
 		}else{ //incoming packet
 			recvfrom(s_commandSocket, rcvBuf, 255, 0, (struct sockaddr*) &commandSocket, &slen);
 			memcpy(&comPacket, rcvBuf, sizeof(commandPacket));
-			printf("\n%lld.%.9ld: Command packet %d receved\n", (long long)now.tv_sec, now.tv_nsec, comPacket.packetId);
+			printf("\n%lld.%.9ld: Command packet %d receved\n", (long long)now.tv_sec, now.tv_nsec, comPacket.packetId); 
+			printf("lift=%f, tilt=%f\n",comPacket.analog[LEVER_LIFT], comPacket.analog[LEVER_TILT]);
 
 			if(bufferEmpty){
 				if(tsComp(tsSub(now, timeOflastPacketSent), SHORT_TIMEOUT) == 1){ //(time since last packet sent > short timeout)
@@ -120,11 +122,11 @@ int main(void){
 
 int commandPacket2EBUpacket(commandPacket* command, EBUanalogOut* analogEBUpacket){
 	
-	setAnalogOut(analogEBUpacket, AO_9, command->analog[CLC_LEVER_1]);
-	setAnalogOut(analogEBUpacket, AO_10, 5-command->analog[CLC_LEVER_1]);
+	setAnalogOut(analogEBUpacket, AO_9, command->analog[LEVER_LIFT]);
+	setAnalogOut(analogEBUpacket, AO_10, 5-command->analog[LEVER_LIFT]);
 	
-	setAnalogOut(analogEBUpacket, AO_11, command->analog[CLC_LEVER_2]);
-	setAnalogOut(analogEBUpacket, AO_12, 5-command->analog[CLC_LEVER_2]);
+	setAnalogOut(analogEBUpacket, AO_11, command->analog[LEVER_TILT]);
+	setAnalogOut(analogEBUpacket, AO_12, 5-command->analog[LEVER_TILT]);
 	
 	return 0;
 }
