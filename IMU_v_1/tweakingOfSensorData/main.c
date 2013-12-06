@@ -263,8 +263,9 @@ int main(){
                     sensorData.rotZ = (gyro_z/gyro_scale)*(pi/pi_scale);
                     printf("%f\n", sensorData.accY);
                     }
-                else
+                else{
                     printf("Bad data\n");
+                    }
                 exit(0);
                 //return sensorData;
             }
