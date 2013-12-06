@@ -53,8 +53,8 @@ int main(int argc, char *argv[]) {
     COM1 = open_serialport("/dev/ttyUSB0",500000); //Open USB port
     struct sockaddr_in outsock;
     int s_out_sensordata, slen = sizeof(struct sockaddr_in);
-//    initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
-    initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
+    initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
+    //initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
     sensor_data data;
     initBuffer();
     while(1) {
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 }
 
 int processData(sensor_data *data) {
-    //printf("HI, we're in processData\n"); //This is broken, serves as a delay
+    printf("HI, we're in processData\n"); //This is broken, serves as a delay
     static int  start = SS_NUM;
     static int  counter = 0;
     static bool biasSet = false;
@@ -105,7 +105,7 @@ int processData(sensor_data *data) {
 
     // update current tilt
     if (!ss_flag) {
-        radians_curr.roll += data->rotX;
+        radians_curr.roll  += data->rotX;
         radians_curr.pitch += data->rotY;
     }
 
@@ -116,7 +116,7 @@ int processData(sensor_data *data) {
 void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in outsock, int slen) {
     printf("HI, we're in sendSensorData\n");
     static int id = 0;
-    packet_header header = {id++,6}; // size = 6 OR 6*4 OR 8 OR 8*4 ???
+    packet_header header = {id++,8*4}; // size = 6 OR 6*4 OR 8 OR 8*4 ???
     packet_load load;
 
   //  header.id;
@@ -125,8 +125,8 @@ void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in 
     load.posY = (data->accY - acc_bias.yAxis) * K;
     load.posZ = (data->accZ - acc_bias.zAxis) * K;
 
-    load.rotX = radians_curr.roll;
-    load.rotY = radians_curr.pitch;
+    load.rotX = radians_curr.roll - gyro_bias.xAxis;
+    load.rotY = radians_curr.pitch - gyro_bias.yAxis;
     load.rotZ = 0;
 
     //send a packet over the network
