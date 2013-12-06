@@ -53,8 +53,8 @@ int main(int argc, char *argv[]) {
     COM1 = open_serialport("/dev/ttyUSB0",500000); //Open USB port
     struct sockaddr_in outsock;
     int s_out_sensordata, slen = sizeof(struct sockaddr_in);
-    //initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
-    initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
+    initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
+    //initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
     sensor_data data;
     initBuffer();
     while(1) {
