@@ -53,8 +53,8 @@ int main(int argc, char *argv[]) {
     COM1 = open_serialport("/dev/ttyUSB0",500000); //Open USB port
     struct sockaddr_in outsock;
     int s_out_sensordata, slen = sizeof(struct sockaddr_in);
-    initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
-    //initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
+    //initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
+    initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
     sensor_data data;
     initBuffer();
     while(1) {
@@ -105,8 +105,8 @@ int processData(sensor_data *data) {
 
     // update current tilt
     if (!ss_flag) {
-        radians_curr.roll  += data->rotX;
-        radians_curr.pitch += data->rotY;
+        radians_curr.roll  += data->rotX/SENSOR_FREQ;
+        radians_curr.pitch += data->rotY/SENSOR_FREQ;
     }
 
     counter++;
@@ -125,8 +125,8 @@ void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in 
     load.posY = (data->accY - acc_bias.yAxis) * K;
     load.posZ = (data->accZ - acc_bias.zAxis) * K;
 
-    load.rotX = radians_curr.roll - gyro_bias.xAxis;
-    load.rotY = radians_curr.pitch - gyro_bias.yAxis;
+    load.rotX = radians_curr.roll;
+    load.rotY = radians_curr.pitch;
     load.rotZ = 0;
 
     //send a packet over the network
