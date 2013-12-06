@@ -66,10 +66,10 @@ int main(int argc, char *argv[]) {
 
 int processData(sensor_data *data) {
     printf("HI, we're in processData\n"); //This is broken, serves as a delay
-    static int start = SS_NUM;
-    static int counter = 0;
+    static int  start = SS_NUM;
+    static int  counter = 0;
     static bool biasSet = false;
-    bool ss_flag = false;
+    bool        ss_flag = false;
 
     // initial data collection
     if (start) {
@@ -107,6 +107,7 @@ int processData(sensor_data *data) {
         radians_curr.pitch += data->rotY;
     } else {
         radians_curr = radians;
+        ss_flag = false;
     }
 
     counter++;
@@ -307,7 +308,7 @@ bias getAccBias(){
 	acc_bias.yAxis = acc_bias.yAxis/savebuffer.num_valid_rec;
 	acc_bias.zAxis = acc_bias.zAxis/savebuffer.num_valid_rec;
 	//Test
-	printf("X Gyro bias: %lf, Y Gyro bias: %lf, Z Gyro bias: %lf\n",
+	printf("X Acc bias: %lf, Y Acc bias: %lf, Z Acc bias: %lf\n",
            acc_bias.xAxis, acc_bias.yAxis, acc_bias.zAxis);
 	return acc_bias;
 }
