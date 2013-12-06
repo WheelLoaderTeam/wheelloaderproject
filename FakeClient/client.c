@@ -10,9 +10,9 @@
 #include<unistd.h>
 #include"../OryxSim_PC/sensorData.h"
 
-#define SERVER "127.0.0.1"
+#define SERVER "192.168.2.97"
 #define PACKETLEN 8 //Max length of buffer
-#define PORT 8888   //The port on which to send data
+//#define PORT    //The port on which to send data
 
 void die(char *s)
 {
@@ -24,17 +24,17 @@ int main(void)
 {
     struct sockaddr_in si_other;
     int s, slen=sizeof(si_other);
-
+    float increment = 0.001, increment2 = 0.0005;
     /////////////////////// declare what you want to send//////////////////////////////
     SensorData data;
-    data.id = 0;
-    data.psize = PACKETLEN;
-    data.values[0]=9.57;
-    data.values[1]=50.69;
-    data.values[2]=24.56;
-    data.values[3]=42.32;
-    data.values[4]=74.96;
-    data.values[5]=38.06;
+    data.id = 2001;
+    data.psize = 32;
+    data.values[0]=0;
+    data.values[1]=0;
+    data.values[2]=0;
+    data.values[3]=0;
+    data.values[4]=0;
+    data.values[5]=0;
     ///////////////////////////////////////////////////////////////////////////////////
     if ( (s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
@@ -43,7 +43,7 @@ int main(void)
 
     memset((char *) &si_other, 0, sizeof(si_other));
     si_other.sin_family = AF_INET;
-    si_other.sin_port = htons(PORT);
+    si_other.sin_port = htons(MOV_PORT);
 
     if (inet_aton(SERVER , &si_other.sin_addr) == 0)
     {
@@ -53,15 +53,21 @@ int main(void)
 
     while(1)
     {
-
+        //data.values[3] += increment;
+        //if (data.values[3] > 0.15 || data.values[3] < -0.15) {
+        //    increment *= -1;
+        //}
+        data.values[2] += increment2;
+        if (data.values[2] > 0.2 || data.values[2] < -0.2) {
+            increment2 *= -1;
+        }
 
         //send the message
         if (sendto(s, &data, sizeof(SensorData) , 0 , (struct sockaddr *) &si_other, slen)==-1)
         {
             die("sendto()");
         }
-        data.id +=1;
-        usleep(20000);
+        usleep(10000);
 
 
 

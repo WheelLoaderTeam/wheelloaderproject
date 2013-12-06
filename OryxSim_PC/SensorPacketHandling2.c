@@ -5,6 +5,9 @@
 #include <stdbool.h>
 #include "sensorData.h"
 
+// TODO verify if next value to be send is close enough to the last value sent and if not modify the value
+// TODO one key on the keyboard that quit the program nicely
+
 int main(int argc, char *argv[]){
     //declaration of variables to set the sockets
     struct sockaddr_in insock, outsock ;
@@ -12,12 +15,13 @@ int main(int argc, char *argv[]){
     // some boolean to check if it's the first packet received or if a packet is pending
     bool packetPending = false;
     bool firstPacket = true;
+    int packetID = 2001;
     // retval => result of the select fonction
     // freq the frequency thqt we set in argv[1]
     int freq, retval;
     // init of the packets so it doesn't point to nowhere at the beginning of the program
     SensorData data;
-    data.id = 0;
+    data.id = packetID;
     data.psize = LEN_BUF_SENSOR*4;
     int i;
 
@@ -29,14 +33,14 @@ int main(int argc, char *argv[]){
 
     // oldData is the variable that remember the last two datas. We use it for extrapolation in case of TIMEOUTs
     SensorData oldData[2];
-    oldData[0].id = 0;
+    oldData[0].id = packetID;
     oldData[0].psize = LEN_BUF_SENSOR;
 
     for (i=0; i<LEN_BUF_SENSOR-2; i++)
     {
         oldData[0].values[i]=0;
     }
-    oldData[1].id = 0;
+    oldData[1].id = packetID;
     oldData[1].psize = LEN_BUF_SENSOR;
 
     for (i=0; i<LEN_BUF_SENSOR-2; i++)
@@ -63,7 +67,7 @@ int main(int argc, char *argv[]){
     {
         printf ("init success\n");
     }
-    printf("port: %d", ntohs(outsock.sin_port));
+   // printf("port: %d", ntohs(outsock.sin_port));
 
 
     while(1){
@@ -73,14 +77,14 @@ int main(int argc, char *argv[]){
         // set the file descriptor of the input socket so it can be used in the select fonction
             FD_ZERO(&rfds);
             FD_SET(s_onBoard, &rfds);
-            if (FD_ISSET(s_onBoard, &rfds))
-                printf("rfds set, beginning the loop\n");
+            //if (FD_ISSET(s_onBoard, &rfds))
+                //printf("rfds set, beginning the loop\n");
 
         // set the value of the timer and start the timer
         // the timer stop either if timeout is reach or a nez packet is received
             tv.tv_sec   = sec;
             tv.tv_usec  = usec;
-            printf("invoking select() with timeout: %ld ms\n",sec*1000+usec/1000);
+            //printf("invoking select() with timeout: %ld ms\n",sec*1000+usec/1000);
             retval=select(sizeof(rfds)*8,&rfds,NULL,NULL,&tv);
 
             if(retval ==-1)
@@ -108,7 +112,7 @@ int main(int argc, char *argv[]){
                 // check ID
                 if(data.id<oldData[1].id)
                 {//discard the data
-                printf("packet discarded\n");
+                //printf("packet discarded\n");
 
 
                 }
@@ -116,7 +120,7 @@ int main(int argc, char *argv[]){
                 {
                     //put data in dataOld[1]
                     oldData[1] = data;
-                    printf("data copied in oldData[1]\n");
+                  //  printf("data copied in oldData[1]\n");
                 }
                 else
                 {
@@ -125,40 +129,41 @@ int main(int argc, char *argv[]){
                     oldData[1] = oldData[0];
                     oldData[0] = data;
                     toBeSend = oldData[0];
-                    printf("data in order\n");
-                    printf("oldData[0] : %d\t%d\t",oldData[0].id,oldData[0].psize);
-                    int i;
-                    for (i=0; i<LEN_BUF_SENSOR-2; i++)
-                    {
-                        if (i<LEN_BUF_SENSOR-3)
-                        {
-                            printf("%f\t",oldData[0].values[i]);
-                        }
-                        else
-                            printf("%f\n",oldData[0].values[i]);
-                    }
+//                    printf("data in order\n");
+//                    printf("oldData[0] : %d\t%d\t",oldData[0].id,oldData[0].psize);
+//                    int i;
+//                    for (i=0; i<LEN_BUF_SENSOR-2; i++)
+//                    {
+//                        if (i<LEN_BUF_SENSOR-3)
+//                        {
+//                            printf("%f\t",oldData[0].values[i]);
+//                        }
+//                        else
+//                            printf("%f\n",oldData[0].values[i]);
+//                    }
 
 
                 }
                 //calcul of remaining time
                 clock_gettime(CLOCK_REALTIME, &spec);
                 currentTime = spec.tv_sec*1000000 + spec.tv_nsec / 1000;
-                printf("current time is %ld ms\n",sec*1000+currentTime/1000);
+                //printf("current time is %ld ms\n",sec*1000+currentTime/1000);
                 usec =  timeOfLastPacketSend + (long)(1.0 / freq * 1000000) - currentTime;
-                printf("usec = %ld\n",usec);
+                //printf("usec = %ld\n",usec);
 
                 // if first packet then set the first timeOfLastPacketSend and send directly the ppacket received and reset the timer
                 if (firstPacket == true)
                 {
                     firstPacket = false;
-                    int bitsSent;
-                    printf("port: %d", ntohs(outsock.sin_port));
-                    if ((bitsSent = sendto(s_sim, &toBeSend, sizeof(SensorData) , 0 , (struct sockaddr *) &outsock, slen) )==-1)
-                        {
-                            die("sendto()");
-                        }
+//                    int bitsSent;
+                    //printf("port: %d", ntohs(outsock.sin_port));
+                    toBeSend.id = packetID;
+//                    if ((bitsSent = sendto(s_sim, &toBeSend, sizeof(SensorData) , 0 , (struct sockaddr *) &outsock, slen) )==-1)
+//                        {
+//                            die("sendto()");
+//                        }
 
-                    printf("firstPacket false and first packet send : return=> %d\n", bitsSent);
+                    //printf("firstPacket false and first packet send : return=> %d\n", bitsSent);
                     timeOfLastPacketSend = currentTime;
                     usec = (long)(1.0 / freq * 1000000);
                     printf("usec = %ld",usec);
@@ -167,16 +172,17 @@ int main(int argc, char *argv[]){
 
                  // if TIMEOUT is close send directly the packet and reset the TIMEOUT
                 if (usec < 100)
-                {   printf("port: %d", ntohs(outsock.sin_port));
-                    if (sendto(s_sim, &toBeSend, sizeof(SensorData) , 0 , (struct sockaddr *) &outsock, slen)==-1)
-                    {
-                        die("sendto()");
-                    }
-                    printf("packet send before timeout");
+                {   //printf("port: %d", ntohs(outsock.sin_port));
+                    toBeSend.id = packetID;
+//                    if (sendto(s_sim, &toBeSend, sizeof(SensorData) , 0 , (struct sockaddr *) &outsock, slen)==-1)
+//                    {
+//                        die("sendto()");
+//                    }
+                    //printf("packet send before timeout");
                     // date the start of the recvfrom function
                     clock_gettime(CLOCK_REALTIME, &spec);
                     timeOfLastPacketSend = spec.tv_sec*1000000+spec.tv_nsec/1000;
-                    printf("time of last pascket sent :  %ld us since epoch\n",timeOfLastPacketSend);
+                   // printf("time of last pascket sent :  %ld us since epoch\n",timeOfLastPacketSend);
                     sec = 0;
                     usec = (long)(1.0 / freq * 1000000);
                     continue;
@@ -188,17 +194,18 @@ int main(int argc, char *argv[]){
             }
             else if (retval== 0 && packetPending==true)
             {
-                int bitsSent;
-                printf("port: %d", ntohs(outsock.sin_port));
-                if ((bitsSent = sendto(s_sim, &toBeSend, sizeof(SensorData) , 0 , (struct sockaddr *) &outsock, slen))==-1)
-                {
-                    die("sendto()");
-                }
-                printf("packet send %d\n",bitsSent);
+//                int bitsSent;
+                //printf("port: %d", ntohs(outsock.sin_port));
+                toBeSend.id = packetID;
+//                if ((bitsSent = sendto(s_sim, &toBeSend, sizeof(SensorData) , 0 , (struct sockaddr *) &outsock, slen))==-1)
+//                {
+//                    die("sendto()");
+//                }
+               // printf("packet send %d\n",bitsSent);
                 // date the start of the recvfrom function
                 clock_gettime(CLOCK_REALTIME, &spec);
                 timeOfLastPacketSend = spec.tv_sec*1000000+spec.tv_nsec/1000;
-                printf("current time: %ld us since epoch\n",timeOfLastPacketSend);
+                //printf("current time: %ld us since epoch\n",timeOfLastPacketSend);
                 sec = 0;
                 usec = (long)(1.0 / freq * 1000000);
 
@@ -213,16 +220,17 @@ int main(int argc, char *argv[]){
                 {
                     data.values[i] = oldData[0].values[i] + oldData[0].values[i] - oldData[1].values[i]; // calcul & assign the extrapolated value to the data we send
                 }
-                printf("port: %d", outsock.sin_port);
-                if (sendto(s_sim, &data, sizeof(SensorData) , 0, (struct sockaddr *) &outsock, slen)==-1)
-                {
-                    die("sendto()");
-                }
+                //printf("port: %d", outsock.sin_port);
+                data.id = packetID;
+//                if (sendto(s_sim, &data, sizeof(SensorData) , 0, (struct sockaddr *) &outsock, slen)==-1)
+//                {
+//                    die("sendto()");
+//                }
                 printf("packet send\n");
                 // date the start of the recvfrom function
                 clock_gettime(CLOCK_REALTIME, &spec);
                 timeOfLastPacketSend = spec.tv_sec*1000000+spec.tv_nsec/1000;
-                printf("current time: %ld us since epoch\n",timeOfLastPacketSend);
+               //s printf("current time: %ld us since epoch\n",timeOfLastPacketSend);
                 sec = 0;
                 usec = (long)(1.0 / freq * 1000000);
             }
