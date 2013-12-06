@@ -1,7 +1,7 @@
 all: clean onBoardCommand
 
 onBoardCommand:
-	gcc -std=c99 -iquote ../net -iquote ../EBU_packets -iquote ../CommandPackets -o onBoardCommand onBoardCommand.c ../EBU_packets/EBUanalogOut.c ../EBU_packets/EBUrelays.c ../CommandPackets/commandPacket.c ../net/socket.c
+	gcc -std=c99 -iquote ../net -iquote ../EBU_packets -iquote ../CommandPackets -o onBoardCommand onBoardCommand.c stats.c ../EBU_packets/EBUanalogOut.c ../EBU_packets/EBUrelays.c ../CommandPackets/commandPacket.c ../net/socket.c
 
 clean:
 	rm -rf *.o onBoardCommand
