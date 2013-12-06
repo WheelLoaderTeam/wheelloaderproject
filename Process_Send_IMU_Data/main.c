@@ -31,11 +31,13 @@ abs_pos radians_curr;
 // bias determined when stationary
 bias gyro_bias;
 bias acc_bias;
+
+// communication port
 int COM1;
+
 /*** FUNCTION PROTOTYPES ***/
 
 int processData(sensor_data *data);
-//sensor_data receiveSensorData(); // declared in receiveSensorData.h, delete upon succsessful compile
 void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in outsock, int slen);
 
 int checkIfSS();
@@ -80,7 +82,7 @@ int processData(sensor_data *data) {
     // need to establish bias first
     if(!biasSet) {
         if (checkIfSS()) {
-            radians = getAbsPos();
+            radians_curr = getAbsPos();
             gyro_bias = getGyroBias();
             acc_bias = getAccBias();
             ss_flag = true;
@@ -94,7 +96,7 @@ int processData(sensor_data *data) {
     if  (counter > SENSOR_FREQ/SS_CHECK_FREQ) {
         counter = 0;
         if(checkIfSS()){
-            radians = getAbsPos();
+            radians_curr = getAbsPos();
             gyro_bias = getGyroBias();
             acc_bias = getAccBias();
             ss_flag = true;
@@ -105,9 +107,6 @@ int processData(sensor_data *data) {
     if (!ss_flag) {
         radians_curr.roll += data->rotX;
         radians_curr.pitch += data->rotY;
-    } else {
-        radians_curr = radians;
-        ss_flag = false;
     }
 
     counter++;
@@ -176,7 +175,7 @@ void writeToBuffer(sensor_data *data){
 }
 
 /*
- checkIfSS(int rcv_buf_pos)
+ checkIfSS(circular_buffer savebuffer)
  This function checks if the tractor is in a stationary state. A preset number
  of latest records(NUM_OF_SS_RECORDS) are read out of the accelerometer buffer.
  If each accelerometer axis shows a delta smaller than SS_DELTATHRESHOLD , then
@@ -244,6 +243,18 @@ abs_pos getAbsPos(){
 
 	x_accavg = (x_accavg/savebuffer.num_valid_rec);
 	y_accavg = (y_accavg/savebuffer.num_valid_rec);
+    //Check for acceleration values outside acceptable range
+    //to prevent asin NAN errors. 
+    if (y_accavg < -1) {
+        y_accavg = -1;
+    }else if (y_accavg > 1){
+        y_accavg = 1;
+    }
+    if (x_accavg < -1) {
+        x_accavg = -1;
+    }else if (x_accavg > 1){
+        x_accavg = 1;
+    }
 	radians.pitch = asin(y_accavg);
 	radians.roll  = asin(x_accavg);
 	//Test
@@ -284,8 +295,8 @@ bias getGyroBias(){
 }
 
 /*
- getGyroBias()
- This function calculates the bias of the gyros.
+ getAccBias()
+ This function calculates the bias of the accelerometers.
  Called when the system is determined to be at rest.
  */
 bias getAccBias(){

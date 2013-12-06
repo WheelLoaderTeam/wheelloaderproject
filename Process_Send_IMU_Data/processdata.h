@@ -20,20 +20,6 @@ typedef struct{
     float roll;
 }abs_pos;
 
-
-/*
-// static acceleration in meters per second^2 and rotation in radians
-typedef struct{
-    float accX;
-    float accY;
-    float accZ;
-    float rotX;
-    float rotY;
-    float rotZ;
-}sensor_data;
-*///Declared in receiveSensorData.h, delete here upon succsessful compile.
- 
- 
 typedef struct{
     uint32_t id;
     uint32_t size;
