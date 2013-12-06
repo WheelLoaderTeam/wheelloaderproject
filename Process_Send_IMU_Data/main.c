@@ -9,7 +9,7 @@
 #include "receiveSensorData.h"
 
 #define SENSOR_FREQ             100     // expected sensor frequency in Hz
-#define BUF_SIZE                1024	// size of circular buffer
+#define BUF_SIZE                200 	// size of circular buffer
 
 #define SS_CHECK_FREQ           0.2     // in Hz
 #define SS_DELTA_THRESHOLD      0.50
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 }
 
 int processData(sensor_data *data) {
-    printf("HI, we're in processData\n"); //This is broken, serves as a delay
+    //printf("HI, we're in processData\n"); //This is broken, serves as a delay
     static int  start = SS_NUM;
     static int  counter = 0;
     static bool biasSet = false;
@@ -243,8 +243,8 @@ abs_pos getAbsPos(){
 
 	x_accavg = (x_accavg/savebuffer.num_valid_rec);
 	y_accavg = (y_accavg/savebuffer.num_valid_rec);
-    //Check for acceleration values outside acceptable range
-    //to prevent asin NAN errors. 
+/*    //Check for acceleration values outside acceptable range
+    //to prevent asin NAN errors.
     if (y_accavg < -1) {
         y_accavg = -1;
     }else if (y_accavg > 1){
@@ -255,6 +255,7 @@ abs_pos getAbsPos(){
     }else if (x_accavg > 1){
         x_accavg = 1;
     }
+*/
 	radians.pitch = asin(y_accavg);
 	radians.roll  = asin(x_accavg);
 	//Test

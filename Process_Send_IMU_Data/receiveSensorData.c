@@ -245,9 +245,9 @@ sensor_data receiveSensorData(){
                 pkg_cntr = 0;               //Reset counter when end of sending is reached
                 // Put everythin in a struct and call processdata ?
                 //ATTENTION! Some of the received data must be sign changed: rotY, should be inverted (turns out the acc chip has weird axis-defs)
-                sensorData.accX = (acc_x-Zero_data_x)*(Max_voltage/sensitivity)*gravity/Max_size;
-                sensorData.accY = (acc_y-Zero_data_y)*(Max_voltage/sensitivity)*gravity/Max_size;
-                sensorData.accZ = (acc_z-Zero_data_z)*(Max_voltage/sensitivity)*gravity/Max_size;
+                sensorData.accX = (acc_x-Zero_data_x)*(Max_voltage/sensitivity)/Max_size;
+                sensorData.accY = (acc_y-Zero_data_y)*(Max_voltage/sensitivity)/Max_size;
+                sensorData.accZ = (acc_z-Zero_data_z)*(Max_voltage/sensitivity)/Max_size;
                 sensorData.rotX = (gyro_x/gyro_scale)*(pi/pi_scale);
                 sensorData.rotY = -(gyro_y/gyro_scale)*(pi/pi_scale);
                 sensorData.rotZ = (gyro_z/gyro_scale)*(pi/pi_scale);

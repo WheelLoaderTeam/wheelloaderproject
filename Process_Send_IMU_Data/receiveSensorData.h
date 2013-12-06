@@ -13,6 +13,7 @@ typedef struct{
 
 ///***Function Prototypes***///
 sensor_data receiveSensorData();
+int open_serialport(const char *device, int rate);
 
 
 #endif
