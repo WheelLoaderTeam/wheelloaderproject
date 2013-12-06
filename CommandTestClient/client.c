@@ -55,7 +55,7 @@ int main(void)
             die("sendto()");
         }
         else{
-	    fprintf(stderr, "Packet sent\t");
+	    fprintf(stderr, "Packet %d sent\t", packet.packetId);
             usleep(80000);
 	}
 
