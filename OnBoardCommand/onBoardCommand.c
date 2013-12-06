@@ -3,13 +3,15 @@
 
 const struct timespec LONG_TIMEOUT = {2, 0};
 const struct timespec SHORT_TIMEOUT = {0, 100000000};
+const struct timespec TIMESPECZERO = {0, 0};
 
 int main(void){
+	stats s = new_stats;
 	char rcvBuf[255];
 	
 	int bufferEmpty = 1;
 	EBUanalogOut buffer;
-	uint32_t lastPacketID;
+	uint32_t lastPacketID = 0;
 	struct timespec timeOflastPacketSent;
 	struct timespec now;
 	
@@ -54,20 +56,32 @@ int main(void){
 		
 		//wait for packet from simulator
 		int rVal;
-		printf("\tTimeout set to: %lld.%.9ld\n", (long long)timeout.tv_sec, timeout.tv_nsec);
+		printf("Timeout set to: %lld.%.9ld\n", (long long)timeout.tv_sec, timeout.tv_nsec);
 
 		rVal = pselect(s_commandSocket+1, &fs, NULL, NULL, &timeout, NULL);
 		clock_gettime(CLOCK_REALTIME, &now);
 		if(rVal == 0){ //timeout
-			printf("\n%lld.%.9ld: Select timed out\n", (long long)now.tv_sec, now.tv_nsec);
+//			printf("\n%lld.%.9ld: Select timed out\n", (long long)now.tv_sec, now.tv_nsec);
 			if(bufferEmpty){
 				//send stop packet
-				printf("\tSending stop\n");
+//				printf("\tSending stop\n");
+				s.packetsSent++;
+				s.lastSentA9 = getAnalogOut(&analogStop, AO_9);
+				s.lastSentA10 = getAnalogOut(&analogStop, AO_10);
+				s.lastSentA11 = getAnalogOut(&analogStop, AO_11);
+				s.lastSentA12 = getAnalogOut(&analogStop, AO_12);
+
 				sendto(s_relays, (char*)&analogStop, sizeof(EBUanalogOut), 0, (struct sockaddr*) &analog_out_socket, slen);
 			} else { //buffer not empty
 				//send packet in buffer
-				printf("\tSending packet in buffer\n");
-				printf("channel 9 = %f, channel 10 = %f, channel 11 = %f, channel 12 = %f\n", getAnalogOut(&buffer, AO_9), getAnalogOut(&buffer, AO_10), getAnalogOut(&buffer, AO_11), getAnalogOut(&buffer, AO_12));
+//				printf("\tSending packet in buffer\n");
+//				printf("channel 9 = %f \nchannel 10 = %f \nchannel 11 = %f \nchannel 12 = %f\n", getAnalogOut(&buffer, AO_9), getAnalogOut(&buffer, AO_10), getAnalogOut(&buffer, AO_11), getAnalogOut(&buffer, AO_12));
+				s.packetsSent++;
+				s.lastSentA9 = getAnalogOut(&buffer, AO_9);
+				s.lastSentA10 = getAnalogOut(&buffer, AO_10);
+				s.lastSentA11 = getAnalogOut(&buffer, AO_11);
+				s.lastSentA12 = getAnalogOut(&buffer, AO_12);
+
 				sendto(s_relays, (char*)&buffer, sizeof(EBUanalogOut), 0, (struct sockaddr*) &analog_out_socket, slen);
 				bufferEmpty = 1;//clear buffer
 			}
@@ -76,26 +90,42 @@ int main(void){
 		}else{ //incoming packet
 			recvfrom(s_commandSocket, rcvBuf, 255, 0, (struct sockaddr*) &commandSocket, &slen);
 			memcpy(&comPacket, rcvBuf, sizeof(commandPacket));
-			printf("\n%lld.%.9ld: Command packet %d receved\n", (long long)now.tv_sec, now.tv_nsec, comPacket.packetId); 
-			printf("lift=%f, tilt=%f\n",comPacket.analog[LEVER_LIFT], comPacket.analog[LEVER_TILT]);
+//			printf("\n%lld.%.9ld: Command packet %d receved\n", (long long)now.tv_sec, now.tv_nsec, comPacket.packetId); 
+//			printf("lift=%f, tilt=%f\n",comPacket.analog[LEVER_LIFT], comPacket.analog[LEVER_TILT]);
+			s.packetsReceived++;
+			s.lastReceivedLift = comPacket.analog[LEVER_LIFT];
+			s.lastReceivedTilt = comPacket.analog[LEVER_TILT];
 
 			if(bufferEmpty){
-				if(tsComp(tsSub(now, timeOflastPacketSent), SHORT_TIMEOUT) == 1){ //(time since last packet sent > short timeout)
+				if(comPacket.packetId <= lastPacketID){ //ignore out-of-order packets
+//					printf("\tPacket out of order, discarding new packet\n");
+					s.packetsLost--;
+					s.packetsOutOfOrder++;
+					
+					//set remaining time of long timeout
+					timeout = tsSub(tsAdd(timeOflastPacketSent, LONG_TIMEOUT), now);
+				}else if(tsComp(tsSub(now, timeOflastPacketSent), SHORT_TIMEOUT) == 1){ //(time since last packet sent > short timeout)
 					//send packet imediatly
-					printf("\tSending packet imediatly\n");
+//					printf("\tSending packet imediatly\n");
 					EBUanalogOut tempPacket;
 					commandPacket2EBUpacket(&comPacket, &tempPacket);
+					
+					s.packetsLost += comPacket.packetId - lastPacketID - 1;
+					s.packetsSent++;
+					s.lastSentA9 = getAnalogOut(&tempPacket, AO_9);
+					s.lastSentA10 = getAnalogOut(&tempPacket, AO_10);
+					s.lastSentA11 = getAnalogOut(&tempPacket, AO_11);
+					s.lastSentA12 = getAnalogOut(&tempPacket, AO_12);
+					
 					sendto(s_relays, (char*)&tempPacket, sizeof(EBUanalogOut), 0, (struct sockaddr*) &analog_out_socket, slen);
 					timeout = LONG_TIMEOUT;
 					timeOflastPacketSent = now;
 					lastPacketID = comPacket.packetId; // save packetID
-				}else if(lastPacketID >= comPacket.packetId){ //ignore out-of-order packets
-					printf("\tPacket out of order, discarding new packet\n");
-					//set remaining time of long timeout
-					timeout = tsSub(tsAdd(timeOflastPacketSent, LONG_TIMEOUT), now);
 				}else{ //(time since last packet sent < short timeout)
 					//put packet in buffer
-					printf("\tPutting packet in buffer\n");
+//					printf("\tPutting packet in buffer\n");
+					s.packetsLost += comPacket.packetId - lastPacketID - 1;
+					
 					commandPacket2EBUpacket(&comPacket, &buffer);
 					lastPacketID = comPacket.packetId;
 					bufferEmpty = 0;
@@ -105,28 +135,38 @@ int main(void){
 			}else{ //buffer not empty
 				if(comPacket.packetId > lastPacketID){//determine witch packet should remain in buffer
 					//put packet in buffer
-					printf("\treplacing packet in buffer\n");
+//					printf("\treplacing packet in buffer\n");
+					s.packetsLost += comPacket.packetId - lastPacketID - 1;
+					
 					commandPacket2EBUpacket(&comPacket, &buffer);
 					lastPacketID = comPacket.packetId;
 					bufferEmpty = 0;
 				}else{
-					printf("\tPacket out of order, discarding new packet\n");
+//					printf("\tPacket out of order, discarding new packet\n");
+					s.packetsLost--;
+					s.packetsOutOfOrder++;
 				}
 				//set remaining time of short timeout
 				timeout = tsSub(tsAdd(timeOflastPacketSent, SHORT_TIMEOUT), now);
 			}
 		}
+		if(tsComp(timeout, TIMESPECZERO) == -1){
+			timeout = TIMESPECZERO;
+		}
+		printStats(&s);
+		printf("Last packet ID: %d\n", lastPacketID);
 	}
 	return 0;
 }
 
 int commandPacket2EBUpacket(commandPacket* command, EBUanalogOut* analogEBUpacket){
+	float lift = command->analog[LEVER_LIFT] * 2.5 + 2.5;
+	setAnalogOut(analogEBUpacket, AO_9, lift);
+	setAnalogOut(analogEBUpacket, AO_10, 5-lift);
 	
-	setAnalogOut(analogEBUpacket, AO_9, command->analog[LEVER_LIFT]);
-	setAnalogOut(analogEBUpacket, AO_10, 5-command->analog[LEVER_LIFT]);
-	
-	setAnalogOut(analogEBUpacket, AO_11, command->analog[LEVER_TILT]);
-	setAnalogOut(analogEBUpacket, AO_12, 5-command->analog[LEVER_TILT]);
+	float tilt = command->analog[LEVER_TILT] * 2.5 + 2.5;
+	setAnalogOut(analogEBUpacket, AO_11, tilt);
+	setAnalogOut(analogEBUpacket, AO_12, 5-tilt);
 	
 	return 0;
 }

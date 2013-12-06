@@ -16,6 +16,8 @@
 
 #include "socket.h"
 
+#include "stats.h"
+
 
 int commandPacket2EBUpacket(commandPacket* command, EBUanalogOut* analogEBUpacket);
 

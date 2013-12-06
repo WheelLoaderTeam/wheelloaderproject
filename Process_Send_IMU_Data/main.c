@@ -6,7 +6,7 @@
 #include <math.h> 				//asin
 #include "processdata.h"
 #include "../OryxSim_PC/sensorData.h"
-#include "../receiveSensorData/receiveSensorData.h"
+#include "receiveSensorData.h"
 
 #define SENSOR_FREQ             100     // expected sensor frequency in Hz
 #define BUF_SIZE                1024	// size of circular buffer
@@ -32,10 +32,12 @@ abs_pos radians_curr;
 bias gyro_bias;
 bias acc_bias;
 
+// communication port
+int COM1;
+
 /*** FUNCTION PROTOTYPES ***/
 
 int processData(sensor_data *data);
-//sensor_data receiveSensorData(); // declared in receiveSensorData.h, delete upon succsessful compile
 void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in outsock, int slen);
 
 int checkIfSS();
@@ -48,9 +50,11 @@ void writeToBuffer(sensor_data *data);
 
 /*** FUNCTION CODE ***/
 int main(int argc, char *argv[]) {
+    COM1 = open_serialport("/dev/ttyUSB0",500000); //Open USB port
     struct sockaddr_in outsock;
     int s_out_sensordata, slen = sizeof(struct sockaddr_in);
-    initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
+//    initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
+    initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
     sensor_data data;
     initBuffer();
     while(1) {
@@ -63,21 +67,22 @@ int main(int argc, char *argv[]) {
 }
 
 int processData(sensor_data *data) {
-    static int start = SS_NUM;
-    static int counter = 0;
+    printf("HI, we're in processData\n"); //This is broken, serves as a delay
+    static int  start = SS_NUM;
+    static int  counter = 0;
     static bool biasSet = false;
-    bool ss_flag = false;
-    
+    bool        ss_flag = false;
+
     // initial data collection
     if (start) {
         start--;
         return 0;
     }
-    
+
     // need to establish bias first
     if(!biasSet) {
         if (checkIfSS()) {
-            radians = getAbsPos();
+            radians_curr = getAbsPos();
             gyro_bias = getGyroBias();
             acc_bias = getAccBias();
             ss_flag = true;
@@ -86,24 +91,22 @@ int processData(sensor_data *data) {
             return 0;
         }
     }
-    
+
     // periodically check if we are stationary
     if  (counter > SENSOR_FREQ/SS_CHECK_FREQ) {
         counter = 0;
         if(checkIfSS()){
-            radians = getAbsPos();
+            radians_curr = getAbsPos();
             gyro_bias = getGyroBias();
             acc_bias = getAccBias();
             ss_flag = true;
         }
     }
-    
+
     // update current tilt
     if (!ss_flag) {
         radians_curr.roll += data->rotX;
         radians_curr.pitch += data->rotY;
-    } else {
-        radians_curr = radians;
     }
 
     counter++;
@@ -111,20 +114,21 @@ int processData(sensor_data *data) {
 }
 
 void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in outsock, int slen) {
+    printf("HI, we're in sendSensorData\n");
     static int id = 0;
     packet_header header = {id++,6}; // size = 6 OR 6*4 OR 8 OR 8*4 ???
     packet_load load;
-    
-    header.id;
-    
+
+  //  header.id;
+
     load.posX = (data->accX - acc_bias.xAxis) * K;
     load.posY = (data->accY - acc_bias.yAxis) * K;
     load.posZ = (data->accZ - acc_bias.zAxis) * K;
-    
+
     load.rotX = radians_curr.roll;
     load.rotY = radians_curr.pitch;
     load.rotZ = 0;
-    
+
     //send a packet over the network
     SensorData send_data;
     send_data.id = header.id;
@@ -171,12 +175,12 @@ void writeToBuffer(sensor_data *data){
 }
 
 /*
- checkIfSS(int rcv_buf_pos)
- This function checks if the tractor is in a stationary state. A preset number 
- of latest records(NUM_OF_SS_RECORDS) are read out of the accelerometer buffer. 
- If each accelerometer axis shows a delta smaller than SS_DELTATHRESHOLD , then 
- the tractor is assumed to be stationary, and the function returns 1. If any 
- accelerometer delta exceeds SS_DELTATHRESHOLD, the function returns 0. The 
+ checkIfSS(circular_buffer savebuffer)
+ This function checks if the tractor is in a stationary state. A preset number
+ of latest records(NUM_OF_SS_RECORDS) are read out of the accelerometer buffer.
+ If each accelerometer axis shows a delta smaller than SS_DELTATHRESHOLD , then
+ the tractor is assumed to be stationary, and the function returns 1. If any
+ accelerometer delta exceeds SS_DELTATHRESHOLD, the function returns 0. The
  algorithm for determining delta is simply maximum - minimum.
  */
 int checkIfSS(circular_buffer savebuffer){
@@ -200,7 +204,7 @@ int checkIfSS(circular_buffer savebuffer){
 	}
 	//test
 	printf("x_delta = %lf, y_delta = %lf, z_delta = %lf \n", x_max - x_min, y_max - y_min, z_max - z_min);
-    
+
 	if(((x_max - x_min) < SS_DELTA_THRESHOLD) &&
        ((y_max - y_min) < SS_DELTA_THRESHOLD) &&
        ((z_max - z_min) < SS_DELTA_THRESHOLD)){
@@ -215,9 +219,9 @@ int checkIfSS(circular_buffer savebuffer){
 
 /*
  getAbsPos(circular_buffer savebuffer)
- This function calculates pitch(y-rotation) and roll(x-rotation) based on the 
- static acceleration. These values are used to "reset" the simulator, and erase 
- any accumulated drift. The gyro data sent is always relative to the latest 
+ This function calculates pitch(y-rotation) and roll(x-rotation) based on the
+ static acceleration. These values are used to "reset" the simulator, and erase
+ any accumulated drift. The gyro data sent is always relative to the latest
  pitch/roll data, again to prevent drift error.
  Called when the system is determined to be at rest.
  */
@@ -226,7 +230,7 @@ abs_pos getAbsPos(){
     int index = savebuffer.last_write_pos;
 	float x_accavg = 0, y_accavg = 0;
 	abs_pos radians;
-    
+
 	while(num_records > 0){
 		if(index == -1){
 			index = BUF_SIZE-1;
@@ -236,9 +240,21 @@ abs_pos getAbsPos(){
 		index--;
         num_records--;
 	}
-    
+
 	x_accavg = (x_accavg/savebuffer.num_valid_rec);
 	y_accavg = (y_accavg/savebuffer.num_valid_rec);
+    //Check for acceleration values outside acceptable range
+    //to prevent asin NAN errors. 
+    if (y_accavg < -1) {
+        y_accavg = -1;
+    }else if (y_accavg > 1){
+        y_accavg = 1;
+    }
+    if (x_accavg < -1) {
+        x_accavg = -1;
+    }else if (x_accavg > 1){
+        x_accavg = 1;
+    }
 	radians.pitch = asin(y_accavg);
 	radians.roll  = asin(x_accavg);
 	//Test
@@ -249,15 +265,15 @@ abs_pos getAbsPos(){
 
 /*
  getGyroBias()
- This function calculates the bias of the gyros. 
+ This function calculates the bias of the gyros.
  Called when the system is determined to be at rest.
  */
 bias getGyroBias(){
 	int num_records = savebuffer.num_valid_rec;
     int index = savebuffer.last_write_pos;
 	bias gyro_bias = {0.0, 0.0, 0.0};
-    
-    
+
+
 	while( num_records > 0){
 		if(index == -1){
 			index = BUF_SIZE-1;
@@ -268,7 +284,7 @@ bias getGyroBias(){
 		index--;
         num_records--;
 	};
-    
+
 	gyro_bias.xAxis = gyro_bias.xAxis/savebuffer.num_valid_rec;
 	gyro_bias.yAxis = gyro_bias.yAxis/savebuffer.num_valid_rec;
 	gyro_bias.zAxis = gyro_bias.zAxis/savebuffer.num_valid_rec;
@@ -279,15 +295,15 @@ bias getGyroBias(){
 }
 
 /*
- getGyroBias()
- This function calculates the bias of the gyros.
+ getAccBias()
+ This function calculates the bias of the accelerometers.
  Called when the system is determined to be at rest.
  */
 bias getAccBias(){
 	int num_records = savebuffer.num_valid_rec;
     int index = savebuffer.last_write_pos;
 	bias acc_bias = {0.0, 0.0, 0.0};
-    
+
 	while( num_records > 0){
 		if(index == -1){
 			index = BUF_SIZE-1;
@@ -298,12 +314,12 @@ bias getAccBias(){
 		index--;
         num_records--;
 	};
-    
+
 	acc_bias.xAxis = acc_bias.xAxis/savebuffer.num_valid_rec;
 	acc_bias.yAxis = acc_bias.yAxis/savebuffer.num_valid_rec;
 	acc_bias.zAxis = acc_bias.zAxis/savebuffer.num_valid_rec;
 	//Test
-	printf("X Gyro bias: %lf, Y Gyro bias: %lf, Z Gyro bias: %lf\n",
+	printf("X Acc bias: %lf, Y Acc bias: %lf, Z Acc bias: %lf\n",
            acc_bias.xAxis, acc_bias.yAxis, acc_bias.zAxis);
 	return acc_bias;
 }
