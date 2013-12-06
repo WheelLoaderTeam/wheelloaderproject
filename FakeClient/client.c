@@ -20,11 +20,13 @@ void die(char *s)
     exit(1);
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
     struct sockaddr_in si_other;
     int s, slen=sizeof(si_other);
-
+    int freq;
+    long usec = (long)(1.0 / freq * 1000000.0);
+    sscanf(argv[1],"%d",&freq);
     /////////////////////// declare what you want to send//////////////////////////////
     SensorData data;
     data.id = 0;
@@ -61,7 +63,7 @@ int main(void)
             die("sendto()");
         }
         data.id +=1;
-        usleep(20000);
+        usleep(usec);
 
 
 
