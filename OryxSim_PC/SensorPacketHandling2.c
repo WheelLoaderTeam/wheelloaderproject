@@ -59,7 +59,7 @@ int main(int argc, char *argv[]){
 
 
        // init the sockets
-    if ( initServerSocket(8888, &s_onBoard, &insock)==1 && initClientSocket(6666, &s_sim, "127.0.0.1",&outsock)==1 )
+    if ( initServerSocket(IMU_PORT, &s_onBoard, &insock)==1 && initClientSocket(MOV_PORT, &s_sim, SIM_IP,&outsock)==1 )
     {
         printf ("init success\n");
     }
