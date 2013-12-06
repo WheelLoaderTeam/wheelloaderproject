@@ -53,10 +53,11 @@ int main(int argc, char *argv[]) {
     COM1 = open_serialport("/dev/ttyUSB0",500000); //Open USB port
     struct sockaddr_in outsock;
     int s_out_sensordata, slen = sizeof(struct sockaddr_in);
-    initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
-    //initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
+    //initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
+    initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
     sensor_data data;
     initBuffer();
+    data = receiveSensorData(); //Hack Fix for corrupt first data from receivesensordata.c
     while(1) {
         data = receiveSensorData();
         writeToBuffer(&data);
@@ -97,6 +98,8 @@ int processData(sensor_data *data) {
         counter = 0;
         if(checkIfSS()){
             radians_curr = getAbsPos();
+            printf("radianscurr.pitch =%f radianscurr.roll =%f\n", radians_curr.pitch, radians_curr.roll);
+            exit(0);
             gyro_bias = getGyroBias();
             acc_bias = getAccBias();
             ss_flag = true;
@@ -243,24 +246,11 @@ abs_pos getAbsPos(){
 
 	x_accavg = (x_accavg/savebuffer.num_valid_rec);
 	y_accavg = (y_accavg/savebuffer.num_valid_rec);
-/*    //Check for acceleration values outside acceptable range
-    //to prevent asin NAN errors.
-    if (y_accavg < -1) {
-        y_accavg = -1;
-    }else if (y_accavg > 1){
-        y_accavg = 1;
-    }
-    if (x_accavg < -1) {
-        x_accavg = -1;
-    }else if (x_accavg > 1){
-        x_accavg = 1;
-    }
-*/
 	radians.pitch = asin(y_accavg);
 	radians.roll  = asin(x_accavg);
 	//Test
-	printf("Angle in degrees of pitch: %lf, and roll: %lf\n x_accavg: %lf y_accavg: %lf\n",
-           (radians.pitch * (180/3.14159)), (radians.roll * (180/3.14159)), x_accavg, y_accavg);
+	printf("Angle in radians of pitch: %lf, and roll: %lf\n x_accavg: %lf y_accavg: %lf\n",
+           radians.pitch, radians.roll, x_accavg, y_accavg);
 	return radians;
 }
 
