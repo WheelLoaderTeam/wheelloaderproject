@@ -147,7 +147,7 @@ sensor_data receiveSensorData(){
                     //printf("An error has occured 1 \n");
                     //printf("%d\n", var);
                     //return 0;               //End here if corrupt data
-                     correct_pkg = 0;
+                     error_flag = 1;;
                 }
             }
             if (pkg_cntr == 6){             //GyroX, Byte 3 (Sensor data)
@@ -165,7 +165,7 @@ sensor_data receiveSensorData(){
                     else {
                         //printf("An error has occured 2\n");
                         //printf("%d\n",var);
-                         correct_pkg = 0;
+                         error_flag = 1;;
                     }
                 }
             }
@@ -194,7 +194,7 @@ sensor_data receiveSensorData(){
                     else {                      //All else is a real error
                         //printf("An error has occured 4\n");
                         //printf("%d\n",var);
-                        correct_pkg = 0;
+                        error_flag = 1;
                     }
                 }
             }
@@ -223,7 +223,7 @@ sensor_data receiveSensorData(){
                     else {                      //All else is a real error
                        //printf("An error has occured 6\n");
                         //printf("%d\n",var);
-                        correct_pkg = 0;
+                       error_flag = 1;
                     }
                 }
             }

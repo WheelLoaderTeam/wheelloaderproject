@@ -133,6 +133,7 @@ int main(){
             }
             else if (pkg_cntr <5){          //If still in beginning
                 correct_pkg = 0;            //Not "correct" package
+                error_flag = 0;
             }
         }
         else {                              //If values are received
@@ -266,7 +267,7 @@ int main(){
                 else{
                     printf("Bad data\n");
                     }
-                exit(0);
+                //exit(0);
                 //return sensorData;
             }
         }

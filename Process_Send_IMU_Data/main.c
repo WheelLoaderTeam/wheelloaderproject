@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
     initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
     sensor_data data;
     initBuffer();
-    data = receiveSensorData(); //Hack Fix for corrupt first data from receivesensordata.c
+    //data = receiveSensorData(); //Hack Fix for corrupt first data from receivesensordata.c
     while(1) {
         data = receiveSensorData();
         writeToBuffer(&data);
@@ -98,8 +98,6 @@ int processData(sensor_data *data) {
         counter = 0;
         if(checkIfSS()){
             radians_curr = getAbsPos();
-            printf("radianscurr.pitch =%f radianscurr.roll =%f\n", radians_curr.pitch, radians_curr.roll);
-            exit(0);
             gyro_bias = getGyroBias();
             acc_bias = getAccBias();
             ss_flag = true;
@@ -121,8 +119,6 @@ void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in 
     static int id = 0;
     packet_header header = {id++,8*4}; // size = 6 OR 6*4 OR 8 OR 8*4 ???
     packet_load load;
-
-  //  header.id;
 
     load.posX = (data->accX - acc_bias.xAxis) * K;
     load.posY = (data->accY - acc_bias.yAxis) * K;
