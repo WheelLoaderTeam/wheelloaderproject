@@ -6,8 +6,14 @@ const struct timespec SHORT_TIMEOUT = {0, 100000000};
 const struct timespec TIMESPECZERO = {0, 0};
 
 int main(void){
+	//Setup Signal handler and atexit functions
+	signal(SIGINT, INT_handler);
+	atexit(resetRelays);
+
 	stats s = new_stats;
 	char rcvBuf[255];
+	
+	int noPacketsReceived = 1;
 	
 	int bufferEmpty = 1;
 	EBUanalogOut buffer;
@@ -19,13 +25,14 @@ int main(void){
 	
 	struct timespec timeout = LONG_TIMEOUT;
 	
+	
 	//setup sockets to send packets to the EBU and receve from commandPC
 	struct sockaddr_in relays_socket, analog_out_socket, commandSocket;
 	socklen_t slen = sizeof(struct sockaddr_in);	
 	int s_relays, s_analog_out, s_commandSocket;
 	
-	initClientSocket(EBU_RELAYS_PORT, &s_relays, EBU2_IP, &relays_socket);
-	initClientSocket(EBU_ANALOG_OUT_PORT, &s_analog_out, EBU2_IP, &analog_out_socket);
+	initClientSocket(EBU_RELAYS_PORT, &s_relays, EBU1_IP, &relays_socket);
+	initClientSocket(EBU_ANALOG_OUT_PORT, &s_analog_out, EBU1_IP, &analog_out_socket);
 	
 	//prepare and send stop packet
 	EBUanalogOut analogStop = new_EBUanalogOut;
@@ -92,6 +99,11 @@ int main(void){
 			memcpy(&comPacket, rcvBuf, sizeof(commandPacket));
 //			printf("\n%lld.%.9ld: Command packet %d receved\n", (long long)now.tv_sec, now.tv_nsec, comPacket.packetId); 
 //			printf("lift=%f, tilt=%f\n",comPacket.analog[LEVER_LIFT], comPacket.analog[LEVER_TILT]);
+			if(noPacketsReceived){
+				lastPacketID = comPacket.packetId - 1;
+				noPacketsReceived = 0;
+			}
+			
 			s.packetsReceived++;
 			s.lastReceivedLift = comPacket.analog[LEVER_LIFT];
 			s.lastReceivedTilt = comPacket.analog[LEVER_TILT];
@@ -160,11 +172,11 @@ int main(void){
 }
 
 int commandPacket2EBUpacket(commandPacket* command, EBUanalogOut* analogEBUpacket){
-	float lift = command->analog[LEVER_LIFT] * 2.5 + 2.5;
+	float lift = command->analog[LEVER_LIFT] * 2 + 2.5;
 	setAnalogOut(analogEBUpacket, AO_9, lift);
 	setAnalogOut(analogEBUpacket, AO_10, 5-lift);
 	
-	float tilt = command->analog[LEVER_TILT] * 2.5 + 2.5;
+	float tilt = command->analog[LEVER_TILT] * 2 + 2.5;
 	setAnalogOut(analogEBUpacket, AO_11, tilt);
 	setAnalogOut(analogEBUpacket, AO_12, 5-tilt);
 	
@@ -211,5 +223,20 @@ int tsComp(struct timespec ts1, struct timespec ts2){
 		}		
 	}
 	
+}
+
+void INT_handler(int dummy){
+	exit(EXIT_SUCCESS);
+}
+
+void resetRelays(){
+	struct sockaddr_in relays_socket;
+	socklen_t slen = sizeof(struct sockaddr_in);	
+	int s_relays;
+	
+	initClientSocket(EBU_RELAYS_PORT, &s_relays, EBU1_IP, &relays_socket);
+
+	EBUrelays relays = newEBUrelays();
+	sendto(s_relays, (char*)&relays, sizeof(EBUrelays), 0, (struct sockaddr*) &relays_socket, slen);
 }
 

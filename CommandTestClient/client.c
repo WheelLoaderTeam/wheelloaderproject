@@ -28,7 +28,7 @@ int main(void)
 {
     struct sockaddr_in si_other;
     int s, slen=sizeof(si_other);
-    struct packetFormat packet = {0, sizeof(struct packetFormat), 0.1, -0.1, 0.5, -0.5, 0.4, 0.8, 0.3, 0.7, 0.6, -0.2};
+    struct packetFormat packet = {0, sizeof(struct packetFormat), 0.1, -0.1, 0.5, -1, 0.4, 0.8, 0.3, 0.7, 0.6, -0.2};
 
     if ( (s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
@@ -47,7 +47,6 @@ int main(void)
 
     while(1)
     {
-        packet.packetId++;
 
         //send the message
         if (sendto(s, &packet, sizeof(struct packetFormat) , 0 , (struct sockaddr *) &si_other, slen)==-1)
@@ -58,6 +57,8 @@ int main(void)
 	    fprintf(stderr, "Packet %d sent\t", packet.packetId);
             usleep(80000);
 	}
+
+        packet.packetId++;
 
     }
 
