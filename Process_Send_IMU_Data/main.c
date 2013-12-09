@@ -5,7 +5,7 @@
 #include <float.h> 				//Do we need?
 #include <math.h> 				//asin
 #include "processdata.h"
-#include "../OryxSim_PC/sensorData.h"
+#include "../OryxSim_PC/SensorDataHandling.h"
 #include "receiveSensorData.h"
 
 #define SENSOR_FREQ             100     // expected sensor frequency in Hz
