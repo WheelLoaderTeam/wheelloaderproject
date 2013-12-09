@@ -120,9 +120,11 @@ int main(){
     float pi = 3.14159f;
     int gyro_scale = 80;
     int pi_scale = 180;
+    int error_flag = 0;
     int pkg_cntr = 0;                       //Counter to keep track of packets
     int correct_pkg = 0;                    //Flag to see if in right place or not, 0 if startup haven't been observed, 1 if all is OK (?)
     while(1) {
+        var = 0;
         var = read_USART();
         pkg_cntr++;
         if (var == 0x00){                   //Check if zero Byte is sent
@@ -131,6 +133,7 @@ int main(){
             }
             else if (pkg_cntr <5){          //If still in beginning
                 correct_pkg = 0;            //Not "correct" package
+                error_flag = 0;
             }
         }
         else {                              //If values are received
@@ -150,7 +153,8 @@ int main(){
                 else{
                     printf("An error has occured 1 \n");
                     printf("%d\n", var);
-//                    return 0;               //End here if corrupt data
+                    error_flag = 1;
+                    //return 0;               //End here if corrupt data
                 }
             }
             if (pkg_cntr == 6){             //GyroX, Byte 3 (Sensor data)
@@ -168,7 +172,7 @@ int main(){
                     else {
                         printf("An error has occured 2\n");
                         printf("%d\n",var);
-//                        return 0;
+                        //return 0;
                     }
                 }
             }
@@ -179,6 +183,7 @@ int main(){
                 else{
                     printf("An error has occured 3\n");
                     printf("%d\n", var);
+                    error_flag = 1;
                 }
             }
             if (pkg_cntr == 10){            //GyroY, Byte 3 (Sensor data)
@@ -190,13 +195,13 @@ int main(){
             if (pkg_cntr == 12){            //GyroY, Byte 1 (Error data)
                 if ((var>>1) != 0x00){      //If any of the error bits are set
                     if ((var>>1) == 0x02){  //This "error" is set if value exceeds 512 which is OK, don't know why it exists..
-                    printf("A non-error has occured\n");
-                    printf("%d\n",var);
+                        printf("A non-error has occured\n");
+                        printf("%d\n",var);
                     }
                     else {                      //All else is a real error
                         printf("An error has occured 4\n");
                         printf("%d\n",var);
-//                        return 0;
+                        //return 0;
                     }
                 }
             }
@@ -207,6 +212,7 @@ int main(){
                 else{
                     printf("An error has occured 5\n");
                     printf("%d\n",var);
+                    error_flag = 1;
                 }
             }
             if (pkg_cntr == 14){            //GyroZ, Byte 3 (Sensor data)
@@ -224,7 +230,7 @@ int main(){
                     else {                      //All else is a real error
                         printf("An error has occured 6\n");
                         printf("%d\n",var);
-//                        return 0;
+                        //return 0;
                     }
                 }
             }
@@ -248,15 +254,21 @@ int main(){
                 pkg_cntr = 0;               //Reset counter when end of sending is reached
                 // Put everythin in a struct and call processdata ?
                 //ATTENTION! Some of the received data must be sign changed: rotY, should be inverted (turns out the acc chip has weird axis-defs)
-//                printf("%d\n",acc_z);
-                sensorData.accX = (acc_x-Zero_data_x)*(Max_voltage/sensitivity)*gravity/Max_size;
-                sensorData.accY = (acc_y-Zero_data_y)*(Max_voltage/sensitivity)*gravity/Max_size;
-                sensorData.accZ = (acc_z-Zero_data_z)*(Max_voltage/sensitivity)*gravity/Max_size;
-                sensorData.rotX = (gyro_x/gyro_scale)*(pi/pi_scale);
-                sensorData.rotY = -(gyro_y/gyro_scale)*(pi/pi_scale);
-                sensorData.rotZ = (gyro_z/gyro_scale)*(pi/pi_scale);
-                printf("%f\n", sensorData.rotX);
-          //      return sensorData;
+                //printf("%d\n",acc_z);
+                if (error_flag == 0){
+                    sensorData.accX = (acc_x-Zero_data_x)*(Max_voltage/sensitivity)*gravity/Max_size;
+                    sensorData.accY = (acc_y-Zero_data_y)*(Max_voltage/sensitivity)*gravity/Max_size;
+                    sensorData.accZ = (acc_z-Zero_data_z)*(Max_voltage/sensitivity)*gravity/Max_size;
+                    sensorData.rotX = (gyro_x/gyro_scale)*(pi/pi_scale);
+                    sensorData.rotY = -(gyro_y/gyro_scale)*(pi/pi_scale);
+                    sensorData.rotZ = (gyro_z/gyro_scale)*(pi/pi_scale);
+                    printf("%f\n", sensorData.accY);
+                    }
+                else{
+                    printf("Bad data\n");
+                    }
+                //exit(0);
+                //return sensorData;
             }
         }
     }

@@ -114,6 +114,7 @@ sensor_data receiveSensorData(){
     float pi = 3.14159f;
     int gyro_scale = 80;
     int pi_scale = 180;
+    int error_flag = 0;
     int pkg_cntr = 0;                       //Counter to keep track of packets
     int correct_pkg = 0;                    //Flag to see if in right place or not, 0 if startup haven't been observed, 1 if all is OK (?)
     while(1) {
@@ -125,6 +126,7 @@ sensor_data receiveSensorData(){
             }
             else if (pkg_cntr <5){          //If still in beginning
                 correct_pkg = 0;            //Not "correct" package
+                error_flag = 0;
             }
         }
         else {                              //If values are received
@@ -145,7 +147,7 @@ sensor_data receiveSensorData(){
                     //printf("An error has occured 1 \n");
                     //printf("%d\n", var);
                     //return 0;               //End here if corrupt data
-                     correct_pkg = 0;
+                     error_flag = 1;;
                 }
             }
             if (pkg_cntr == 6){             //GyroX, Byte 3 (Sensor data)
@@ -163,7 +165,7 @@ sensor_data receiveSensorData(){
                     else {
                         //printf("An error has occured 2\n");
                         //printf("%d\n",var);
-                         correct_pkg = 0;
+                         error_flag = 1;;
                     }
                 }
             }
@@ -192,7 +194,7 @@ sensor_data receiveSensorData(){
                     else {                      //All else is a real error
                         //printf("An error has occured 4\n");
                         //printf("%d\n",var);
-                        correct_pkg = 0;
+                        error_flag = 1;
                     }
                 }
             }
@@ -221,7 +223,7 @@ sensor_data receiveSensorData(){
                     else {                      //All else is a real error
                        //printf("An error has occured 6\n");
                         //printf("%d\n",var);
-                        correct_pkg = 0;
+                       error_flag = 1;
                     }
                 }
             }
@@ -245,14 +247,19 @@ sensor_data receiveSensorData(){
                 pkg_cntr = 0;               //Reset counter when end of sending is reached
                 // Put everythin in a struct and call processdata ?
                 //ATTENTION! Some of the received data must be sign changed: rotY, should be inverted (turns out the acc chip has weird axis-defs)
-                sensorData.accX = (acc_x-Zero_data_x)*(Max_voltage/sensitivity)/Max_size;
-                sensorData.accY = (acc_y-Zero_data_y)*(Max_voltage/sensitivity)/Max_size;
-                sensorData.accZ = (acc_z-Zero_data_z)*(Max_voltage/sensitivity)/Max_size;
-                sensorData.rotX = (gyro_x/gyro_scale)*(pi/pi_scale);
-                sensorData.rotY = -(gyro_y/gyro_scale)*(pi/pi_scale);
-                sensorData.rotZ = (gyro_z/gyro_scale)*(pi/pi_scale);
-                //printf("Testing: %f\n", sensorData.rotZ);
-                return sensorData;
+                if (error_flag == 0){
+                    sensorData.accX = (acc_x-Zero_data_x)*(Max_voltage/sensitivity)/Max_size;
+                    sensorData.accY = (acc_y-Zero_data_y)*(Max_voltage/sensitivity)/Max_size;
+                    sensorData.accZ = (acc_z-Zero_data_z)*(Max_voltage/sensitivity)/Max_size;
+                    sensorData.rotX = (gyro_x/gyro_scale)*(pi/pi_scale);
+                    sensorData.rotY = -(gyro_y/gyro_scale)*(pi/pi_scale);
+                    sensorData.rotZ = (gyro_z/gyro_scale)*(pi/pi_scale);
+                    //printf("Testing: %f\n", sensorData.rotZ);
+                    return sensorData;
+                }
+                else{
+                    ;
+                }
             }
         }
     }

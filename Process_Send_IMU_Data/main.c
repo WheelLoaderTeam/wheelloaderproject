@@ -5,13 +5,13 @@
 #include <float.h> 				//Do we need?
 #include <math.h> 				//asin
 #include "processdata.h"
-#include "../OryxSim_PC/sensorData.h"
+#include "../OryxSim_PC/SensorPacketHandling.h"
 #include "receiveSensorData.h"
 
 #define SENSOR_FREQ             100     // expected sensor frequency in Hz
 #define BUF_SIZE                200 	// size of circular buffer
 
-#define SS_CHECK_FREQ           0.2     // in Hz
+#define SS_CHECK_FREQ           0.5     // in Hz
 #define SS_DELTA_THRESHOLD      0.50
 #define SS_NUM                  200     // at 100 hz = 2 seconds of data
 
@@ -53,10 +53,11 @@ int main(int argc, char *argv[]) {
     COM1 = open_serialport("/dev/ttyUSB0",500000); //Open USB port
     struct sockaddr_in outsock;
     int s_out_sensordata, slen = sizeof(struct sockaddr_in);
-    initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
-    //initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
+    //initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
+    initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
     sensor_data data;
     initBuffer();
+    data = receiveSensorData(); //Hack Fix for corrupt first data from receivesensordata.c
     while(1) {
         data = receiveSensorData();
         writeToBuffer(&data);
@@ -118,8 +119,6 @@ void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in 
     static int id = 0;
     packet_header header = {id++,8*4}; // size = 6 OR 6*4 OR 8 OR 8*4 ???
     packet_load load;
-
-  //  header.id;
 
     load.posX = (data->accX - acc_bias.xAxis) * K;
     load.posY = (data->accY - acc_bias.yAxis) * K;
@@ -243,24 +242,11 @@ abs_pos getAbsPos(){
 
 	x_accavg = (x_accavg/savebuffer.num_valid_rec);
 	y_accavg = (y_accavg/savebuffer.num_valid_rec);
-/*    //Check for acceleration values outside acceptable range
-    //to prevent asin NAN errors.
-    if (y_accavg < -1) {
-        y_accavg = -1;
-    }else if (y_accavg > 1){
-        y_accavg = 1;
-    }
-    if (x_accavg < -1) {
-        x_accavg = -1;
-    }else if (x_accavg > 1){
-        x_accavg = 1;
-    }
-*/
-	radians.pitch = asin(y_accavg);
-	radians.roll  = asin(x_accavg);
+	radians.pitch = -asin(x_accavg);
+	radians.roll  = asin(y_accavg);
 	//Test
-	printf("Angle in degrees of pitch: %lf, and roll: %lf\n x_accavg: %lf y_accavg: %lf\n",
-           (radians.pitch * (180/3.14159)), (radians.roll * (180/3.14159)), x_accavg, y_accavg);
+	printf("Angle in radians of pitch: %lf, and roll: %lf\n x_accavg: %lf y_accavg: %lf\n",
+           radians.pitch, radians.roll, x_accavg, y_accavg);
 	return radians;
 }
 
