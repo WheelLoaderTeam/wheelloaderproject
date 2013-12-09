@@ -9,9 +9,13 @@
 
 // TODO verify if next value to be send is close enough to the last value sent and if not modify the value
 // TODO one key on the keyboard that quit the program nicely
-
+int running =1;
+void INThandler ();
 
 int main(int argc, char *argv[]){
+    //TODO register the signal handler
+
+
     //declaration of variables to set the sockets
     struct sockaddr_in insock, outsock ;
     int s_onBoard, s_sim, recv_len, slen = sizeof(struct sockaddr_in) ;
@@ -73,7 +77,7 @@ int main(int argc, char *argv[]){
    // printf("port: %d", ntohs(outsock.sin_port));
 
 
-    while(1){
+    while(running){
 
 
 
@@ -100,15 +104,15 @@ int main(int argc, char *argv[]){
                 {
                     die("recvfrom()");
                 }
-                printf("packet : %d\t%d\t",data.id,data.psize);
+                printf("packet : %d\t%d\t",toBeSend.id,toBeSend.psize);
                 int i;
                 for (i=0; i<LEN_BUF_SENSOR-2; i++)
                 {
                     if (i<LEN_BUF_SENSOR-3)
                     {
-                        printf("%f\t",data.values[i]);
+                        printf("%f\t",toBeSend.values[i]);
                     }
-                    else printf("%f\n",data.values[i]);
+                    else printf("%f\n",toBeSend.values[i]);
                 }
                 packetPending = true;
 
@@ -120,6 +124,7 @@ int main(int argc, char *argv[]){
                 else if(data.id<oldData[0].id)
                 {
                     //put data in dataOld[1]
+                    data = smoothMotion(toBeSend,data);
                     oldData[1] = data;
                   //  printf("data copied in oldData[1]\n");
                 }
@@ -128,7 +133,7 @@ int main(int argc, char *argv[]){
 
                     //put dataOld[0] in dataOld[1] and data in dataOld[0]
                     // save the packet into old buf
-                    toBeSend = smoothMotion(toBeSend,)
+                    data = smoothMotion(toBeSend,data);
                     oldData[1] = oldData[0];
                     oldData[0] = data;
                     toBeSend = oldData[0];
@@ -221,7 +226,7 @@ int main(int argc, char *argv[]){
                 int i;
                 for ( i=0; i<6; i++)
                 {
-                    ẗoBeSend.values[i] = oldData[0].values[i] + oldData[0].values[i] - oldData[1].values[i]; // calcul & assign the extrapolated value to the data we send
+                    toBeSend.values[i] = oldData[0].values[i] + oldData[0].values[i] - oldData[1].values[i]; // calcul & assign the extrapolated value to the data we send
                 }
                 //printf("port: %d", outsock.sin_port);
                 toBeSend.id = packetID;
@@ -240,6 +245,26 @@ int main(int argc, char *argv[]){
 
 
     }
+
+        float n = fabs(toBeSend.values[0]) + fabs(toBeSend.values[1]) + fabs(toBeSend.values[2])
+                + fabs(toBeSend.values[3]) + fabs(toBeSend.values[4]) + fabs(toBeSend.values[5]);
+        SensorData zero;
+        zero.id = packetID;
+        zero.psize = LEN_BUF_SENSOR;
+
+        for (i=0; i<LEN_BUF_SENSOR-2; i++)
+        {
+            zero.values[i]=0;
+        }
+
+        while(n!0=){
+            toBeSend=smoothMotion(toBeSend,zero);
+            n = fabs(toBeSend.values[0]) + fabs(toBeSend.values[1]) + fabs(toBeSend.values[2])
+            + fabs(toBeSend.values[3]) + fabs(toBeSend.values[4]) + fabs(toBeSend.values[5]);
+
+        }
+
+
 
 }
 
@@ -272,4 +297,8 @@ float verifMaxMovement(float p, float n, float maxi){
             return p-maxi;
     }
     else return n;
+}
+
+void INThandler (){
+    running=0;
 }

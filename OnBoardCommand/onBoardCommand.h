@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 600
 
+#include <signal.h>
+
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -24,3 +26,7 @@ int commandPacket2EBUpacket(commandPacket* command, EBUanalogOut* analogEBUpacke
 struct timespec tsAdd(struct timespec ts1, struct timespec ts2);
 struct timespec tsSub(struct timespec ts1, struct timespec ts2);
 int tsComp(struct timespec ts1, struct timespec ts2);
+
+void INT_handler(int dummy);
+void resetRelays();
+
