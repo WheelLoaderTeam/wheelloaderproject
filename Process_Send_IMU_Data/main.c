@@ -5,13 +5,13 @@
 #include <float.h> 				//Do we need?
 #include <math.h> 				//asin
 #include "processdata.h"
-#include "../OryxSim_PC/SensorDataHandling.h"
+#include "../OryxSim_PC/SensorPacketHandling.h"
 #include "receiveSensorData.h"
 
 #define SENSOR_FREQ             100     // expected sensor frequency in Hz
 #define BUF_SIZE                200 	// size of circular buffer
 
-#define SS_CHECK_FREQ           0.2     // in Hz
+#define SS_CHECK_FREQ           0.5     // in Hz
 #define SS_DELTA_THRESHOLD      0.50
 #define SS_NUM                  200     // at 100 hz = 2 seconds of data
 
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
     initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
     sensor_data data;
     initBuffer();
-    //data = receiveSensorData(); //Hack Fix for corrupt first data from receivesensordata.c
+    data = receiveSensorData(); //Hack Fix for corrupt first data from receivesensordata.c
     while(1) {
         data = receiveSensorData();
         writeToBuffer(&data);
@@ -242,8 +242,8 @@ abs_pos getAbsPos(){
 
 	x_accavg = (x_accavg/savebuffer.num_valid_rec);
 	y_accavg = (y_accavg/savebuffer.num_valid_rec);
-	radians.pitch = asin(y_accavg);
-	radians.roll  = asin(x_accavg);
+	radians.pitch = -asin(x_accavg);
+	radians.roll  = asin(y_accavg);
 	//Test
 	printf("Angle in radians of pitch: %lf, and roll: %lf\n x_accavg: %lf y_accavg: %lf\n",
            radians.pitch, radians.roll, x_accavg, y_accavg);
