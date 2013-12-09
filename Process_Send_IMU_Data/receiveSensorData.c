@@ -254,7 +254,7 @@ sensor_data receiveSensorData(){
                     sensorData.rotX = (gyro_x/gyro_scale)*(pi/pi_scale);
                     sensorData.rotY = -(gyro_y/gyro_scale)*(pi/pi_scale);
                     sensorData.rotZ = (gyro_z/gyro_scale)*(pi/pi_scale);
-                    //printf("Testing: %f\n", sensorData.rotZ);
+                    //printf("Testing: %f\n", sensorData.accX);
                     return sensorData;
                 }
                 else{

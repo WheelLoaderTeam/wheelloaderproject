@@ -57,7 +57,6 @@ int main(int argc, char *argv[]) {
     initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
     sensor_data data;
     initBuffer();
-    data = receiveSensorData(); //Hack Fix for corrupt first data from receivesensordata.c
     while(1) {
         data = receiveSensorData();
         writeToBuffer(&data);
@@ -106,8 +105,8 @@ int processData(sensor_data *data) {
 
     // update current tilt
     if (!ss_flag) {
-        radians_curr.roll  += data->rotX/SENSOR_FREQ;
-        radians_curr.pitch += data->rotY/SENSOR_FREQ;
+        radians_curr.roll  += (data->rotX)/SENSOR_FREQ;
+        radians_curr.pitch += (data->rotY)/SENSOR_FREQ;
     }
 
     counter++;
