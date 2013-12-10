@@ -5,7 +5,7 @@ int main(void){
 	char rcvBuf[255];
 	
 	commandPacket comPacket;
-	int packetId = 0;
+	int packetId = 1;
 	struct sockaddr_in commandInSocket, commandOutSocket;
 	socklen_t slen = sizeof(struct sockaddr_in);	
 	int s_commandInSocket, s_commandOutSocket;
