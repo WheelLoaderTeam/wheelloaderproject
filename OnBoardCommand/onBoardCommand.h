@@ -17,15 +17,11 @@
 #include "commandPacket.h"
 
 #include "socket.h"
-
+#include "tsmod.h"
 #include "stats.h"
 
 
 int commandPacket2EBUpacket(commandPacket* command, EBUanalogOut* analogEBUpacket);
-
-struct timespec tsAdd(struct timespec ts1, struct timespec ts2);
-struct timespec tsSub(struct timespec ts1, struct timespec ts2);
-int tsComp(struct timespec ts1, struct timespec ts2);
 
 void INT_handler(int dummy);
 void resetRelays();

@@ -9,6 +9,8 @@
 #include <signal.h>
 
 
+//variables that calibrate the smooth motion
+//CHANGE THOSE CAREFULLY NEVER MORE 0.01 ON THE ORYX SIMULATOR
 #define MAX_TRANS_MOV 0.0005
 #define MAX_ROT_MOV 0.001
 
