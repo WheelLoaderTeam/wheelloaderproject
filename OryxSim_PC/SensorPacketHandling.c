@@ -32,7 +32,7 @@ int main(int argc, char *argv[]){
     // init of the packets so it doesn't point to nowhere at the beginning of the program
     SensorData data;
     data.id = packetID;
-    data.psize = LEN_BUF_SENSOR*4;
+    data.psize = 32;
     int i;
 
     sscanf(argv[1],"%d",&freq);
@@ -44,20 +44,27 @@ int main(int argc, char *argv[]){
     // oldData is the variable that remember the last two datas. We use it for extrapolation in case of TIMEOUTs
     SensorData oldData[2];
     oldData[0].id = packetID;
-    oldData[0].psize = LEN_BUF_SENSOR;
+    oldData[0].psize = 32;
 
     for (i=0; i<LEN_BUF_SENSOR-2; i++)
     {
         oldData[0].values[i]=0;
     }
     oldData[1].id = packetID;
-    oldData[1].psize = LEN_BUF_SENSOR;
+    oldData[1].psize = 32;
 
     for (i=0; i<LEN_BUF_SENSOR-2; i++)
     {
         oldData[1].values[i]=0;
     }
     SensorData toBeSend;
+    toBeSend.id = packetID;
+    toBeSend.psize = 32;
+
+    for (i=0; i<LEN_BUF_SENSOR-2; i++)
+    {
+        toBeSend.values[i]=0;
+    };
 
     //file descriptor for the input socket
     fd_set rfds;
@@ -107,16 +114,17 @@ int main(int argc, char *argv[]){
                 {
                     die("recvfrom()");
                 }
-                printf("packet : %d\t%d\t",toBeSend.id,toBeSend.psize);
-                int i;
-                for (i=0; i<LEN_BUF_SENSOR-2; i++)
-                {
-                    if (i<LEN_BUF_SENSOR-3)
-                    {
-                        printf("%f\t",toBeSend.values[i]);
-                    }
-                    else printf("%f\n",toBeSend.values[i]);
-                }
+//                printf("packet : %d\t%d\t",data.id,data.psize);
+//                int i;
+//                for (i=0; i<LEN_BUF_SENSOR-2; i++)
+//                {
+//                    if (i<LEN_BUF_SENSOR-3)
+//                    {
+//                        printf("%f\t",data.values[i]);
+//                    }
+//                    else printf("%f\n",data.values[i]);
+//                }
+
                 packetPending = true;
 
                 // check ID
@@ -169,10 +177,21 @@ int main(int argc, char *argv[]){
                     int bitsSent;
                     //printf("port: %d", ntohs(outsock.sin_port));
                     toBeSend.id = packetID;
+                    toBeSend.psize =32;
                     if ((bitsSent = sendto(s_sim, &toBeSend, sizeof(SensorData) , 0 , (struct sockaddr *) &outsock, slen) )==-1)
                         {
                             die("sendto()");
                         }
+                    printf("packet : %d\t%d\t",toBeSend.id,toBeSend.psize);
+                    int i;
+                    for (i=0; i<LEN_BUF_SENSOR-2; i++)
+                    {
+                        if (i<LEN_BUF_SENSOR-3)
+                        {
+                            printf("%f\t",toBeSend.values[i]);
+                        }
+                        else printf("%f\n",toBeSend.values[i]);
+                    }
 
                     //printf("firstPacket false and first packet send : return=> %d\n", bitsSent);
                     timeOfLastPacketSend = currentTime;
@@ -185,10 +204,22 @@ int main(int argc, char *argv[]){
                 if (usec < 100)
                 {   //printf("port: %d", ntohs(outsock.sin_port));
                     toBeSend.id = packetID;
+                    toBeSend.psize =32;
                     if (sendto(s_sim, &toBeSend, sizeof(SensorData) , 0 , (struct sockaddr *) &outsock, slen)==-1)
                     {
                         die("sendto()");
                     }
+                    printf("packet : %d\t%d\t",toBeSend.id,toBeSend.psize);
+                    int i;
+                    for (i=0; i<LEN_BUF_SENSOR-2; i++)
+                    {
+                        if (i<LEN_BUF_SENSOR-3)
+                        {
+                            printf("%f\t",toBeSend.values[i]);
+                        }
+                        else printf("%f\n",toBeSend.values[i]);
+                    }
+
                     //printf("packet send before timeout");
                     // date the start of the recvfrom function
                     clock_gettime(CLOCK_REALTIME, &spec);
@@ -208,9 +239,20 @@ int main(int argc, char *argv[]){
                 int bitsSent;
                 //printf("port: %d", ntohs(outsock.sin_port));
                 toBeSend.id = packetID;
+                toBeSend.psize =32;
                 if ((bitsSent = sendto(s_sim, &toBeSend, sizeof(SensorData) , 0 , (struct sockaddr *) &outsock, slen))==-1)
                 {
                     die("sendto()");
+                }
+                printf("packet : %d\t%d\t",toBeSend.id,toBeSend.psize);
+                int i;
+                for (i=0; i<LEN_BUF_SENSOR-2; i++)
+                {
+                    if (i<LEN_BUF_SENSOR-3)
+                    {
+                        printf("%f\t",toBeSend.values[i]);
+                    }
+                    else printf("%f\n",toBeSend.values[i]);
                 }
                // printf("packet send %d\n",bitsSent);
                 // date the start of the recvfrom function
@@ -233,9 +275,20 @@ int main(int argc, char *argv[]){
                 }
                 //printf("port: %d", outsock.sin_port);
                 toBeSend.id = packetID;
+                toBeSend.psize =32;
                 if (sendto(s_sim, &toBeSend, sizeof(SensorData) , 0, (struct sockaddr *) &outsock, slen)==-1)
                 {
                     die("sendto()");
+                }
+
+                printf("packet : %d\t%d\t",toBeSend.id,toBeSend.psize);
+                for (i=0; i<LEN_BUF_SENSOR-2; i++)
+                {
+                    if (i<LEN_BUF_SENSOR-3)
+                    {
+                        printf("%f\t",toBeSend.values[i]);
+                    }
+                    else printf("%f\n",toBeSend.values[i]);
                 }
                 printf("packet send\n");
                 // date the start of the recvfrom function
@@ -253,7 +306,7 @@ int main(int argc, char *argv[]){
                 + fabs(toBeSend.values[3]) + fabs(toBeSend.values[4]) + fabs(toBeSend.values[5]);
         SensorData zero;
         zero.id = packetID;
-        zero.psize = LEN_BUF_SENSOR;
+        zero.psize = 32;
 
         for (i=0; i<LEN_BUF_SENSOR-2; i++)
         {
@@ -262,12 +315,16 @@ int main(int argc, char *argv[]){
 
         while(n!=0){
             toBeSend=smoothMotion(toBeSend,zero);
+            toBeSend.id = packetID;
+            toBeSend.psize =32;
             if (sendto(s_sim, &toBeSend, sizeof(SensorData) , 0, (struct sockaddr *) &outsock, slen)==-1)
                 {
                     die("sendto()");
                 }
             n = fabs(toBeSend.values[0]) + fabs(toBeSend.values[1]) + fabs(toBeSend.values[2])
             + fabs(toBeSend.values[3]) + fabs(toBeSend.values[4]) + fabs(toBeSend.values[5]);
+
+            usleep(10000);
 
         }
  return 0;
@@ -284,7 +341,7 @@ SensorData smoothMotion(SensorData previous, SensorData next ){
     SensorData temp;
 
     temp.id = next.id;
-    temp.psize = previous.psize;
+    temp.psize = 32;
     temp.values[0] = verifMaxMovement(previous.values[0],next.values[0],MAX_TRANS_MOV);
     temp.values[1] = verifMaxMovement(previous.values[1],next.values[1],MAX_TRANS_MOV);
     temp.values[2] = verifMaxMovement(previous.values[2],next.values[2],MAX_TRANS_MOV);

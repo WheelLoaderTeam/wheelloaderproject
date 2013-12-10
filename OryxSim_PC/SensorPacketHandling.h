@@ -2,8 +2,8 @@
 #define SENSORDATA_H_INCLUDED
 #include "../net/socket.h"
 
-#define MAX_TRANS_MOV 0.01
-#define MAX_ROT_MOV 0.01
+#define MAX_TRANS_MOV 0.0005
+#define MAX_ROT_MOV 0.001
 
 //struct used to handle the data from the sensors (IMU)
 typedef struct SensorData {
