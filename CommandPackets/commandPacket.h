@@ -7,7 +7,7 @@ typedef struct commandPacket {
 	uint32_t packetSize;
 	float analog[9];
 	uint32_t digital;
-	struct timespec sentTime;
+	struct timespec timeSent;
 }commandPacket;
 
 #define new_commandPacket {0,0,0,0,0,0,0,0,0,0,0,0}

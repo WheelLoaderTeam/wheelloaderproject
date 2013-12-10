@@ -14,6 +14,7 @@ int main(void){
 	char rcvBuf[255];
 	
 	int noPacketsReceived = 1;
+	int firstPacket = 0;
 	
 	int bufferEmpty = 1;
 	EBUanalogOut buffer;
@@ -68,10 +69,8 @@ int main(void){
 		rVal = pselect(s_commandSocket+1, &fs, NULL, NULL, &timeout, NULL);
 		clock_gettime(CLOCK_REALTIME, &now);
 		if(rVal == 0){ //timeout
-//			printf("\n%lld.%.9ld: Select timed out\n", (long long)now.tv_sec, now.tv_nsec);
 			if(bufferEmpty){
 				//send stop packet
-//				printf("\tSending stop\n");
 				s.packetsSent++;
 				s.lastSentA9 = getAnalogOut(&analogStop, AO_9);
 				s.lastSentA10 = getAnalogOut(&analogStop, AO_10);
@@ -81,8 +80,6 @@ int main(void){
 				sendto(s_relays, (char*)&analogStop, sizeof(EBUanalogOut), 0, (struct sockaddr*) &analog_out_socket, slen);
 			} else { //buffer not empty
 				//send packet in buffer
-//				printf("\tSending packet in buffer\n");
-//				printf("channel 9 = %f \nchannel 10 = %f \nchannel 11 = %f \nchannel 12 = %f\n", getAnalogOut(&buffer, AO_9), getAnalogOut(&buffer, AO_10), getAnalogOut(&buffer, AO_11), getAnalogOut(&buffer, AO_12));
 				s.packetsSent++;
 				s.lastSentA9 = getAnalogOut(&buffer, AO_9);
 				s.lastSentA10 = getAnalogOut(&buffer, AO_10);
@@ -97,32 +94,33 @@ int main(void){
 		}else{ //incoming packet
 			recvfrom(s_commandSocket, rcvBuf, 255, 0, (struct sockaddr*) &commandSocket, &slen);
 			memcpy(&comPacket, rcvBuf, sizeof(commandPacket));
-//			printf("\n%lld.%.9ld: Command packet %d receved\n", (long long)now.tv_sec, now.tv_nsec, comPacket.packetId); 
-//			printf("lift=%f, tilt=%f\n",comPacket.analog[LEVER_LIFT], comPacket.analog[LEVER_TILT]);
+			firstPacket = 0;
 			if(noPacketsReceived){
-				lastPacketID = comPacket.packetId - 1;
+				lastPacketID = comPacket.packetId;
 				noPacketsReceived = 0;
+				firstPacket = 1;
 			}
 			
 			s.packetsReceived++;
 			s.lastReceivedLift = comPacket.analog[LEVER_LIFT];
 			s.lastReceivedTilt = comPacket.analog[LEVER_TILT];
+			newTransmissionTime(&s, tsSub(now, comPacket.timeSent) );
 
 			if(bufferEmpty){
-				if(comPacket.packetId <= lastPacketID){ //ignore out-of-order packets
-//					printf("\tPacket out of order, discarding new packet\n");
-					s.packetsLost--;
+				if(comPacket.packetId <= lastPacketID && !firstPacket){ //ignore out-of-order packets
+					s.packetsLost--;	//If a packet arrives out of order it will preveously been assumed lost.
 					s.packetsOutOfOrder++;
 					
 					//set remaining time of long timeout
 					timeout = tsSub(tsAdd(timeOflastPacketSent, LONG_TIMEOUT), now);
 				}else if(tsComp(tsSub(now, timeOflastPacketSent), SHORT_TIMEOUT) == 1){ //(time since last packet sent > short timeout)
 					//send packet imediatly
-//					printf("\tSending packet imediatly\n");
 					EBUanalogOut tempPacket;
 					commandPacket2EBUpacket(&comPacket, &tempPacket);
 					
-					s.packetsLost += comPacket.packetId - lastPacketID - 1;
+					if(!firstPacket){
+						s.packetsLost += comPacket.packetId - lastPacketID - 1;
+					}
 					s.packetsSent++;
 					s.lastSentA9 = getAnalogOut(&tempPacket, AO_9);
 					s.lastSentA10 = getAnalogOut(&tempPacket, AO_10);
@@ -135,7 +133,6 @@ int main(void){
 					lastPacketID = comPacket.packetId; // save packetID
 				}else{ //(time since last packet sent < short timeout)
 					//put packet in buffer
-//					printf("\tPutting packet in buffer\n");
 					s.packetsLost += comPacket.packetId - lastPacketID - 1;
 					
 					commandPacket2EBUpacket(&comPacket, &buffer);
@@ -147,14 +144,12 @@ int main(void){
 			}else{ //buffer not empty
 				if(comPacket.packetId > lastPacketID){//determine witch packet should remain in buffer
 					//put packet in buffer
-//					printf("\treplacing packet in buffer\n");
 					s.packetsLost += comPacket.packetId - lastPacketID - 1;
 					
 					commandPacket2EBUpacket(&comPacket, &buffer);
 					lastPacketID = comPacket.packetId;
 					bufferEmpty = 0;
 				}else{
-//					printf("\tPacket out of order, discarding new packet\n");
 					s.packetsLost--;
 					s.packetsOutOfOrder++;
 				}
