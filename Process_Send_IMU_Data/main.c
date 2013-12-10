@@ -35,6 +35,8 @@ bias acc_bias;
 // communication port
 int COM1;
 
+//Filed used for logging
+FILE *fp;
 /*** FUNCTION PROTOTYPES ***/
 
 int processData(sensor_data *data);
@@ -51,18 +53,21 @@ void writeToBuffer(sensor_data *data);
 /*** FUNCTION CODE ***/
 int main(int argc, char *argv[]) {
     COM1 = open_serialport("/dev/ttyUSB0",500000); //Open USB port
+    fp = fopen("x_axis_log.txt","w");
+    fclose(fp);
+    fp = fopen("x_axis_log.txt", "w");
     struct sockaddr_in outsock;
     int s_out_sensordata, slen = sizeof(struct sockaddr_in);
     //initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
     initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
     sensor_data data;
     initBuffer();
-    data = receiveSensorData(); //Hack Fix for corrupt first data from receivesensordata.c
     while(1) {
         data = receiveSensorData();
         writeToBuffer(&data);
         if (processData(&data))
             sendSensorData(&data, s_out_sensordata, outsock, slen);
+            fprintf(fp, "%f,",data.rotX);
     }
     return 0;
 }
@@ -106,8 +111,8 @@ int processData(sensor_data *data) {
 
     // update current tilt
     if (!ss_flag) {
-        radians_curr.roll  += data->rotX/SENSOR_FREQ;
-        radians_curr.pitch += data->rotY/SENSOR_FREQ;
+        radians_curr.roll  += (data->rotX)/SENSOR_FREQ;
+        radians_curr.pitch += (data->rotY)/SENSOR_FREQ;
     }
 
     counter++;
