@@ -134,7 +134,8 @@ void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in 
     load.rotZ = 0;
 
     //send a packet over the network
-    SensorData send_data;
+    SensorDataTime send_data;
+    struct timespec spec;
     send_data.id = header.id;
     send_data.psize = 32;
     send_data.values[0] = load.posX;
@@ -143,7 +144,9 @@ void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in 
     send_data.values[3] = load.rotX;
     send_data.values[4] = load.rotY;
     send_data.values[5] = load.rotZ;
-    if (sendto(s_out_sensordata, &send_data, sizeof(SensorData) , 0 , (struct sockaddr *) &outsock, slen)==-1)
+    clock_gettime(CLOCK_REALTIME, &spec);
+    send_data.timestamp = spec;
+    if (sendto(s_out_sensordata, &send_data, sizeof(SensorDataTime) , 0 , (struct sockaddr *) &outsock, slen)==-1)
     {
         die("sendto(), processdata.c line 139");
     }

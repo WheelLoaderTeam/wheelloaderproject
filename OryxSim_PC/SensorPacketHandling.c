@@ -88,6 +88,7 @@ int main(int argc, char *argv[]){
     // where the program put the current time
     struct timeval tv;
     struct timespec spec;
+    struct timespec temp;
     long timeOfLastPacketSend;
     long sec=0;
     long usec = (long)(1.0 / freq * 1000000.0);
@@ -190,14 +191,15 @@ int main(int argc, char *argv[]){
                 //printf("usec = %ld\n",usec);
 
                 // calcul of delay between onboard and onsite PCs
-                avgtime =
-                if (compare to min == -1)
+                temp = tsSub(spec,dataTime.timestamp);
+                avgtime = tsAdd(temp,avgtime);
+                if (tsComp(temp,mintime) == -1)
                 {
-                    mintime = dataTime.timestamp;
+                    mintime = temp;
                 }
-                if (compare to max == 1)
+                if (tsComp(temp,maxtime) == 1)
                 {
-                    maxtime = dataTime.timestamp;
+                    maxtime = temp;
                 }
                 // if first packet then set the first timeOfLastPacketSend and send directly the ppacket received and reset the timer
                 if (firstPacket == true)
@@ -356,9 +358,9 @@ int main(int argc, char *argv[]){
             usleep(10000);
 
         }
-
+    avgtime = tsDiv(avgtime,numbRecv);
     printf("statistics:\n number of packet received: %d\nnumber of packet out of order: %d\nnumber of packets lost: %d\n ",numbRecv,numbOut,numbLost);
-    printf("minimum delay: %d s %d usec\nmaximum delay: %d s %d usec\average delay: %d s %d usec\n",mintime.tv_sec,mintime.tv_nsec/1000,maxtime.tv_sec,maxtime.tv_nsec/1000,avgtime.tv_sec,avgtime.tv_nsec/1000);
+    printf("minimum delay: %ld s %ld usec\nmaximum delay: %ld s %ld usec\average delay: %ld s %ld usec\n",(long)mintime.tv_sec,(long)mintime.tv_nsec/1000,(long)maxtime.tv_sec,(long)maxtime.tv_nsec/1000,(long)avgtime.tv_sec,(long)avgtime.tv_nsec/1000);
     return 0;
 
 
