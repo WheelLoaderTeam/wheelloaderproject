@@ -3,6 +3,7 @@
 #include <time.h>
 #include <math.h>
 #include <stdbool.h>
+#include <signal.h>
 #include "SensorPacketHandling.h"
 
 
@@ -13,7 +14,9 @@ int running =1;
 void INThandler ();
 
 int main(int argc, char *argv[]){
-    //TODO register the signal handler
+    //Setup Signal handler and atexit functions
+	signal(SIGINT, INThandler);
+
 
 
     //declaration of variables to set the sockets
@@ -245,7 +248,7 @@ int main(int argc, char *argv[]){
 
 
     }
-
+        // executed only if the interuption is triggered: It's triggered if we press CTRL+C
         float n = fabs(toBeSend.values[0]) + fabs(toBeSend.values[1]) + fabs(toBeSend.values[2])
                 + fabs(toBeSend.values[3]) + fabs(toBeSend.values[4]) + fabs(toBeSend.values[5]);
         SensorData zero;
@@ -257,13 +260,17 @@ int main(int argc, char *argv[]){
             zero.values[i]=0;
         }
 
-        while(n!0=){
+        while(n!=0){
             toBeSend=smoothMotion(toBeSend,zero);
+            if (sendto(s_sim, &toBeSend, sizeof(SensorData) , 0, (struct sockaddr *) &outsock, slen)==-1)
+                {
+                    die("sendto()");
+                }
             n = fabs(toBeSend.values[0]) + fabs(toBeSend.values[1]) + fabs(toBeSend.values[2])
             + fabs(toBeSend.values[3]) + fabs(toBeSend.values[4]) + fabs(toBeSend.values[5]);
 
         }
-
+ return 0;
 
 
 }
@@ -295,6 +302,7 @@ float verifMaxMovement(float p, float n, float maxi){
             return p+maxi;
         else if ( p-n > 0)
             return p-maxi;
+        else return n;
     }
     else return n;
 }
