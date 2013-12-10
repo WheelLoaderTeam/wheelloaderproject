@@ -35,10 +35,10 @@
 		<Unit filename="../net/socket.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="SensorPacketHandling2.c">
+		<Unit filename="SensorPacketHandling.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sensorData.h" />
+		<Unit filename="SensorPacketHandling.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

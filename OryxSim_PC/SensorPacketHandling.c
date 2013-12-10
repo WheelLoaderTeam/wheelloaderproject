@@ -1,9 +1,4 @@
-#include <sys/time.h>
-#include <unistd.h>
-#include <time.h>
-#include <math.h>
-#include <stdbool.h>
-#include <signal.h>
+
 #include "SensorPacketHandling.h"
 
 
@@ -27,15 +22,35 @@ int main(int argc, char *argv[]){
     bool firstPacket = true;
     int packetID = 2001;
     // retval => result of the select fonction
-    // freq the frequency thqt we set in argv[1]
+    // freq => the frequency thqt we set in argv[1]
     int freq, retval;
+    //numbers for statistics
+    int numbRecv = 0, numbOut = 0, numbLost = 0;
+    struct timespec mintime, maxtime, avgtime;
+    mintime.tv_sec=0;
+    mintime.tv_nsec=0;
+    maxtime.tv_sec=0;
+    maxtime.tv_nsec=0;
+    avgtime.tv_sec=0;
+    avgtime.tv_nsec=0;
+
+
+    sscanf(argv[1],"%d",&freq);
     // init of the packets so it doesn't point to nowhere at the beginning of the program
+    SensorDataTime dataTime;
+    dataTime.id = packetID;
+    dataTime.psize = 32;
+    int i;
+    for (i=0; i<LEN_BUF_SENSOR-2; i++)
+    {
+        dataTime.values[i]=0;
+    }
+    dataTime.timestamp.tv_sec = 0;
+    dataTime.timestamp.tv_nsec = 0;
+
     SensorData data;
     data.id = packetID;
     data.psize = 32;
-    int i;
-
-    sscanf(argv[1],"%d",&freq);
     for (i=0; i<LEN_BUF_SENSOR-2; i++)
     {
         data.values[i]=0;
@@ -73,6 +88,7 @@ int main(int argc, char *argv[]){
     // where the program put the current time
     struct timeval tv;
     struct timespec spec;
+    struct timespec temp;
     long timeOfLastPacketSend;
     long sec=0;
     long usec = (long)(1.0 / freq * 1000000.0);
@@ -110,9 +126,18 @@ int main(int argc, char *argv[]){
             }
             else if(retval)//new packet is received
             {
-                if ((recv_len = recvfrom(s_onBoard, &data, sizeof(SensorData), 0, (struct sockaddr *) &insock, (socklen_t*) &slen)) == -1)
+                if ((recv_len = recvfrom(s_onBoard, &dataTime, sizeof(SensorDataTime), 0, (struct sockaddr *) &insock, (socklen_t*) &slen)) == -1)
                 {
                     die("recvfrom()");
+                }
+                numbRecv++;
+                // put the packet received with timestamp into a sensorData packet without
+                data.id = dataTime.id;
+                data.psize = dataTime.psize;
+                int i;
+                for(i=0;i<LEN_BUF_SENSOR-2;i++)
+                {
+                    data.values[i]=dataTime.values[i];
                 }
 //                printf("packet : %d\t%d\t",data.id,data.psize);
 //                int i;
@@ -141,27 +166,22 @@ int main(int argc, char *argv[]){
                 }
                 else
                 {
-
                     //put dataOld[0] in dataOld[1] and data in dataOld[0]
                     // save the packet into old buf
                     data = smoothMotion(toBeSend,data);
                     oldData[1] = oldData[0];
                     oldData[0] = data;
                     toBeSend = oldData[0];
-//                    printf("data in order\n");
-//                    printf("oldData[0] : %d\t%d\t",oldData[0].id,oldData[0].psize);
-//                    int i;
-//                    for (i=0; i<LEN_BUF_SENSOR-2; i++)
-//                    {
-//                        if (i<LEN_BUF_SENSOR-3)
-//                        {
-//                            printf("%f\t",oldData[0].values[i]);
-//                        }
-//                        else
-//                            printf("%f\n",oldData[0].values[i]);
-//                    }
-
-
+                }
+//                update the statistics numbers
+                if (toBeSend.id + 1 < data.id)
+                {
+                    numbLost++;
+                }
+                else if (toBeSend.id > data.id)
+                {
+                    numbLost--;
+                    numbOut++;
                 }
                 //calcul of remaining time
                 clock_gettime(CLOCK_REALTIME, &spec);
@@ -170,6 +190,17 @@ int main(int argc, char *argv[]){
                 usec =  timeOfLastPacketSend + (long)(1.0 / freq * 1000000) - currentTime;
                 //printf("usec = %ld\n",usec);
 
+                // calcul of delay between onboard and onsite PCs
+                temp = tsSub(spec,dataTime.timestamp);
+                avgtime = tsAdd(temp,avgtime);
+                if (tsComp(temp,mintime) == -1)
+                {
+                    mintime = temp;
+                }
+                if (tsComp(temp,maxtime) == 1)
+                {
+                    maxtime = temp;
+                }
                 // if first packet then set the first timeOfLastPacketSend and send directly the ppacket received and reset the timer
                 if (firstPacket == true)
                 {
@@ -267,7 +298,7 @@ int main(int argc, char *argv[]){
             {
                 printf("TIMEOUT\n");
                 // if TIMEOUT is reached we extrapolate with linear approximation from the last two values
-                toBeSend.values[0] = (oldData[0].values[0])+1; // increment the id
+                toBeSend.id = (toBeSend.id)+1; // increment the id
                 int i;
                 for ( i=0; i<6; i++)
                 {
@@ -327,7 +358,10 @@ int main(int argc, char *argv[]){
             usleep(10000);
 
         }
- return 0;
+    avgtime = tsDiv(avgtime,numbRecv);
+    printf("statistics:\n number of packet received: %d\nnumber of packet out of order: %d\nnumber of packets lost: %d\n ",numbRecv,numbOut,numbLost);
+    printf("minimum delay: %ld s %ld usec\nmaximum delay: %ld s %ld usec\average delay: %ld s %ld usec\n",(long)mintime.tv_sec,(long)mintime.tv_nsec/1000,(long)maxtime.tv_sec,(long)maxtime.tv_nsec/1000,(long)avgtime.tv_sec,(long)avgtime.tv_nsec/1000);
+    return 0;
 
 
 }
