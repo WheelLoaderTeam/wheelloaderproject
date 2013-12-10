@@ -15,7 +15,7 @@
 #define SS_DELTA_THRESHOLD      0.50
 #define SS_NUM                  200     // at 100 hz = 2 seconds of data
 
-#define K                       -10     // position = (acceleration - bias)*K
+#define K                       0     // position = (acceleration - bias)*K
 
 /*** GLOBAL VARIABLES ***/
 
@@ -58,8 +58,8 @@ int main(int argc, char *argv[]) {
     fp = fopen("x_axis_log.txt", "w");
     struct sockaddr_in outsock;
     int s_out_sensordata, slen = sizeof(struct sockaddr_in);
-    //initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
-    initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
+    initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
+    //initClientSocket(6666, &s_out_sensordata, "127.0.0.1", &outsock); //fakeclient
     sensor_data data;
     initBuffer();
     while(1) {
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
         writeToBuffer(&data);
         if (processData(&data))
             sendSensorData(&data, s_out_sensordata, outsock, slen);
-            fprintf(fp, "%f,",data.rotX);
+            //fprintf(fp, "%f,",data.rotX);
     }
     return 0;
 }
