@@ -15,7 +15,7 @@
 #define SS_DELTA_THRESHOLD      0.50
 #define SS_NUM                  200     // at 100 hz = 2 seconds of data
 
-#define K                       -10     // position = (acceleration - bias)*K
+#define K                       0     // position = (acceleration - bias)*K
 
 /*** GLOBAL VARIABLES ***/
 
@@ -53,9 +53,9 @@ void writeToBuffer(sensor_data *data);
 /*** FUNCTION CODE ***/
 int main(int argc, char *argv[]) {
     COM1 = open_serialport("/dev/ttyUSB0",500000); //Open USB port
-    fp = fopen("x_axis_log.txt","w");
+    fp = fopen("IMU_log.txt","w");
     fclose(fp);
-    fp = fopen("x_axis_log.txt", "w");
+    fp = fopen("IMU_log.txt", "w");
     struct sockaddr_in outsock;
     int s_out_sensordata, slen = sizeof(struct sockaddr_in);
     //initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
         writeToBuffer(&data);
         if (processData(&data))
             sendSensorData(&data, s_out_sensordata, outsock, slen);
-            fprintf(fp, "%f,",data.rotX);
+            fprintf(fp, "%f,%f,%f,%f,%f,%f\n",data.accX, data.accY, data.accZ, data.rotX, data.rotY, data.rotZ);
     }
     return 0;
 }
@@ -122,7 +122,7 @@ int processData(sensor_data *data) {
 void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in outsock, int slen) {
     printf("HI, we're in sendSensorData\n");
     static int id = 0;
-    packet_header header = {id++,8*4}; // size = 6 OR 6*4 OR 8 OR 8*4 ???
+    packet_header header = {id++,8*4};
     packet_load load;
 
     load.posX = (data->accX - acc_bias.xAxis) * K;
