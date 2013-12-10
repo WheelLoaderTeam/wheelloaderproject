@@ -18,13 +18,13 @@ int main(void){
 	initServerSocket(CMDI_PORT, &s_commandInSocket, &commandInSocket);
 	
 	while(1){
-//		printf("Waiting to receive Packet\n");
 		recvfrom(s_commandInSocket, rcvBuf, 255, 0, (struct sockaddr*) &commandInSocket, &slen);
 		memcpy(&comPacket, rcvBuf, sizeof(commandPacket));
+		
 		comPacket.packetId = packetId++;
-//		printf("Packet %u recevied\n", comPacket.packetId);
+		clock_gettime(CLOCK_REALTIME, &comPacket.timeSent);
+		printf("sending packet\n");
 		sendto(s_commandOutSocket, (char*)&comPacket, sizeof(commandPacket), 0, (struct sockaddr*) &commandOutSocket, slen);
-//		printf("Packet %u Sent\n\n", comPacket.packetId);
 	}
 	return 0;
 }
