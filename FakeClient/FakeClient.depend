@@ -1,17 +1,17 @@
 # depslib dependency file v1.0
-1386338256 source:/home/wlt-ssd/wheelloaderproject/FakeClient/client.c
+1386689964 source:/home/wlt-ssd/wheelloaderproject/FakeClient/client.c
 	<stdio.h>
 	<string.h>
 	<stdlib.h>
 	<arpa/inet.h>
 	<sys/socket.h>
 	<unistd.h>
-	"../OryxSim_PC/sensorData.h"
+	"../OryxSim_PC/SensorPacketHandling.h"
 
 1385124520 /home/wlt-ssd/wheelloaderproject/OryxSim_PC/sensorData.h
 	"../net/socket.h"
 
-1386325533 /home/wlt-ssd/wheelloaderproject/net/socket.h
+1386338256 /home/wlt-ssd/wheelloaderproject/net/socket.h
 	<sys/socket.h>
 	<sys/types.h>
 	<netinet/in.h>
@@ -19,4 +19,18 @@
 	<string.h>
 	<stdio.h>
 	<arpa/inet.h>
+
+1386683093 /home/wlt-ssd/wheelloaderproject/OryxSim_PC/SensorPacketHandling.h
+	"../net/socket.h"
+	"../tsmod/tsmod.h"
+	<sys/time.h>
+	<unistd.h>
+	<time.h>
+	<math.h>
+	<stdbool.h>
+	<signal.h>
+
+1386682546 /home/wlt-ssd/wheelloaderproject/tsmod/tsmod.h
+	<sys/time.h>
+	<time.h>
 

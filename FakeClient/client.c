@@ -8,9 +8,9 @@
 #include<arpa/inet.h>
 #include<sys/socket.h>
 #include<unistd.h>
-#include"../OryxSim_PC/sensorData.h"
+#include"../OryxSim_PC/SensorPacketHandling.h"
 
-#define SERVER "192.168.2.97"
+#define SERVER "10.0.0.10"
 #define PACKETLEN 8 //Max length of buffer
 //#define PORT    //The port on which to send data
 
@@ -24,15 +24,15 @@ int main(int argc, char *argv[])
 {
     struct sockaddr_in si_other;
     int s, slen=sizeof(si_other);
-<<<<<<< HEAD
+
     int freq;
     long usec = (long)(1.0 / freq * 1000000.0);
     sscanf(argv[1],"%d",&freq);
-=======
+
     float increment = 0.001, increment2 = 0.0005;
->>>>>>> eb991d287bc99badd2eacdb43907e7984af6b176
+
     /////////////////////// declare what you want to send//////////////////////////////
-    SensorData data;
+    SensorDataTime data;
     data.id = 2001;
     data.psize = 32;
     data.values[0]=0;
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
     memset((char *) &si_other, 0, sizeof(si_other));
     si_other.sin_family = AF_INET;
-    si_other.sin_port = htons(MOV_PORT);
+    si_other.sin_port = htons(65100);
 
     if (inet_aton(SERVER , &si_other.sin_addr) == 0)
     {
@@ -67,18 +67,15 @@ int main(int argc, char *argv[])
         if (data.values[2] > 0.2 || data.values[2] < -0.2) {
             increment2 *= -1;
         }
-
+        clock_gettime(CLOCK_REALTIME, &data.timestamp);
         //send the message
-        if (sendto(s, &data, sizeof(SensorData) , 0 , (struct sockaddr *) &si_other, slen)==-1)
+        if (sendto(s, &data, sizeof(SensorDataTime) , 0 , (struct sockaddr *) &si_other, slen)==-1)
         {
             die("sendto()");
         }
-<<<<<<< HEAD
         data.id +=1;
         usleep(usec);
-=======
-        usleep(10000);
->>>>>>> eb991d287bc99badd2eacdb43907e7984af6b176
+
 
 
 
