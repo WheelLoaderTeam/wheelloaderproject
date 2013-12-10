@@ -96,7 +96,7 @@ int main(int argc, char *argv[]){
 
 
        // init the sockets
-    if ( initServerSocket(IMU_PORT, &s_onBoard, &insock)==1 && initClientSocket(MOV_PORT, &s_sim, SIM_IP,&outsock)==1 )
+    if ( initServerSocket(IMU_PORT, &s_onBoard, &insock)==1 && initClientSocket(MOV_PORT, &s_sim, /*SIM_IP*/"127.0.0.1",&outsock)==1 )
     {
         printf ("init success\n");
     }
@@ -360,7 +360,7 @@ int main(int argc, char *argv[]){
         }
     avgtime = tsDiv(avgtime,numbRecv);
     printf("statistics:\n number of packet received: %d\nnumber of packet out of order: %d\nnumber of packets lost: %d\n ",numbRecv,numbOut,numbLost);
-    printf("minimum delay: %ld s %ld usec\nmaximum delay: %ld s %ld usec\average delay: %ld s %ld usec\n",(long)mintime.tv_sec,(long)mintime.tv_nsec/1000,(long)maxtime.tv_sec,(long)maxtime.tv_nsec/1000,(long)avgtime.tv_sec,(long)avgtime.tv_nsec/1000);
+    printf("minimum delay: %ld s %ld usec\nmaximum delay: %ld s %ld usec\naverage delay: %ld s %ld usec\n",(long)mintime.tv_sec,(long)mintime.tv_nsec/1000,(long)maxtime.tv_sec,(long)maxtime.tv_nsec/1000,(long)avgtime.tv_sec,(long)avgtime.tv_nsec/1000);
     return 0;
 
 
