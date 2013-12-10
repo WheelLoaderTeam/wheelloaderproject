@@ -31,8 +31,8 @@ int main(void){
 	socklen_t slen = sizeof(struct sockaddr_in);	
 	int s_relays, s_analog_out, s_commandSocket;
 	
-	initClientSocket(EBU_RELAYS_PORT, &s_relays, EBU1_IP, &relays_socket);
-	initClientSocket(EBU_ANALOG_OUT_PORT, &s_analog_out, EBU1_IP, &analog_out_socket);
+	initClientSocket(EBU_RELAYS_PORT, &s_relays, EBU2_IP, &relays_socket);
+	initClientSocket(EBU_ANALOG_OUT_PORT, &s_analog_out, EBU2_IP, &analog_out_socket);
 	
 	//prepare and send stop packet
 	EBUanalogOut analogStop = new_EBUanalogOut;
@@ -173,12 +173,13 @@ int main(void){
 
 int commandPacket2EBUpacket(commandPacket* command, EBUanalogOut* analogEBUpacket){
 	float lift = command->analog[LEVER_LIFT] * 2 + 2.5;
-	setAnalogOut(analogEBUpacket, AO_9, lift);
-	setAnalogOut(analogEBUpacket, AO_10, 5-lift);
+	
+	setAnalogOut(analogEBUpacket, AO_9, 5-lift);
+	setAnalogOut(analogEBUpacket, AO_10, lift);
 	
 	float tilt = command->analog[LEVER_TILT] * 2 + 2.5;
-	setAnalogOut(analogEBUpacket, AO_11, tilt);
-	setAnalogOut(analogEBUpacket, AO_12, 5-tilt);
+	setAnalogOut(analogEBUpacket, AO_11, 5-tilt);
+	setAnalogOut(analogEBUpacket, AO_12, tilt);
 	
 	return 0;
 }
@@ -234,7 +235,7 @@ void resetRelays(){
 	socklen_t slen = sizeof(struct sockaddr_in);	
 	int s_relays;
 	
-	initClientSocket(EBU_RELAYS_PORT, &s_relays, EBU1_IP, &relays_socket);
+	initClientSocket(EBU_RELAYS_PORT, &s_relays, EBU2_IP, &relays_socket);
 
 	EBUrelays relays = newEBUrelays();
 	sendto(s_relays, (char*)&relays, sizeof(EBUrelays), 0, (struct sockaddr*) &relays_socket, slen);
