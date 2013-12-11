@@ -1,0 +1,65 @@
+# depslib dependency file v1.0
+1384954641 source:/home/wlt-ssd/wheelloaderproject/net/socket.c
+	"socket.h"
+
+1386338256 /home/wlt-ssd/wheelloaderproject/net/socket.h
+	<sys/socket.h>
+	<sys/types.h>
+	<netinet/in.h>
+	<stdlib.h>
+	<string.h>
+	<stdio.h>
+	<arpa/inet.h>
+
+1386783205 source:/home/wlt-ssd/wheelloaderproject/Process_Log_IMU_Data/main.c
+	<stdio.h>
+	<stdint.h>
+	<stdlib.h>
+	<stdbool.h>
+	<float.h>
+	<math.h>
+	"processdataIMU.h"
+	"../OryxSim_PC/SensorPacketHandling.h"
+	"receiveSensorDataIMU.h"
+
+1386326421 /home/wlt-ssd/wheelloaderproject/Process_Send_IMU_Data/processdata.h
+
+1386683093 /home/wlt-ssd/wheelloaderproject/OryxSim_PC/SensorPacketHandling.h
+	"../net/socket.h"
+	"../tsmod/tsmod.h"
+	<sys/time.h>
+	<unistd.h>
+	<time.h>
+	<math.h>
+	<stdbool.h>
+	<signal.h>
+
+1386682546 /home/wlt-ssd/wheelloaderproject/tsmod/tsmod.h
+	<sys/time.h>
+	<time.h>
+
+1386765066 /home/wlt-ssd/wheelloaderproject/Process_Log_IMU_Data/receiveSensorDataIMU2.h
+
+1386326421 /home/wlt-ssd/wheelloaderproject/Process_Log_IMU_Data/processdata.h
+
+1386332880 /home/wlt-ssd/wheelloaderproject/Process_Log_IMU_Data/receiveSensorData.h
+
+1386781064 /home/wlt-ssd/wheelloaderproject/Process_Log_IMU_Data/receiveSensorDataIMU.h
+
+1386784587 source:/home/wlt-ssd/wheelloaderproject/Process_Log_IMU_Data/receiveSensorDataIMU.c
+	<stdlib.h>
+	<stdint.h>
+	<fcntl.h>
+	<termios.h>
+	<termio.h>
+	<stdio.h>
+	<unistd.h>
+	<string.h>
+	<err.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<linux/serial.h>
+	"receiveSensorDataIMU.h"
+
+1386781506 /home/wlt-ssd/wheelloaderproject/Process_Log_IMU_Data/processdataIMU.h
+

@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <linux/serial.h>
-#include "receiveSensorData.h"
+#include "receiveSensorDataIMU.h"
 
 
 struct termios data;
@@ -40,6 +40,7 @@ int COM1;
          int speed = 0;
          fd = open(device,O_RDWR|O_NOCTTY);
          if (fd<0) printf("Error opening port\n");
+
          /* Open and configure serial port */
          if ((fd) == -1){
                  return -1;}
@@ -92,7 +93,7 @@ void write_USART(char data) {
 
 
 //int main(){
-sensor_data receiveSensorData(){
+sensor_data receiveSensorDataIMU(){
     sensor_data sensorData;
     //COM1 = open_serialport("/dev/ttyUSB0",500000); //Open USB port
    // printf("%d\n",COM1); //Just a test to see if port is opened
@@ -106,9 +107,9 @@ sensor_data receiveSensorData(){
     int16_t gyro_z;
     int16_t Max_size = 0x03FF;
     float Max_voltage = 3.3f;
-    uint16_t Zero_data_x = 0x01FD; //IMU1, IMU2 = 0x01FE;
-    uint16_t Zero_data_y = 0x01FF;//IMU1, IMU2 = 0x01F9;
-    uint16_t Zero_data_z = 0x01FD;//IMU1, IMU1 = 0x0211;
+    uint16_t Zero_data_x = 0x01FE; //IMU2, IMU1 = 0x01FD;
+    uint16_t Zero_data_y = 0x01F9;//IMU2, IMU1 = 0x01FF;
+    uint16_t Zero_data_z = 0x0211;//IMU2, IMU1 = 0x01FD;
     float sensitivity = 0.192f;
     float pi = 3.14159f;
     int gyro_scale = 80;
