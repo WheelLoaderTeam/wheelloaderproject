@@ -11,7 +11,7 @@
 
 
 #define MAX_TRANS_MOV 0.0005
-#define MAX_ROT_MOV 0.001
+#define MAX_ROT_MOV 0.003
 
 //struct used to handle the data from the sensors (IMU)
 typedef struct SensorData {
