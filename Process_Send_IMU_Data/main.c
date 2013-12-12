@@ -64,8 +64,8 @@ int main(int argc, char *argv[]) {
     fp = fopen(fname,"w");                          //Open file
     struct sockaddr_in outsock;
     int s_out_sensordata, slen = sizeof(struct sockaddr_in);
-    //initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
-    initClientSocket(65100, &s_out_sensordata, "10.0.0.10", &outsock); //fakeclient
+    initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
+    //initClientSocket(65100, &s_out_sensordata, "10.0.0.10", &outsock); //fakeclient
     sensor_data data;
     initBuffer();
     while(running) {
