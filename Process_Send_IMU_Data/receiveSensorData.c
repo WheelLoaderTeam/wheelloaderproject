@@ -106,9 +106,9 @@ sensor_data receiveSensorData(){
     int16_t gyro_z;
     int16_t Max_size = 0x03FF;
     float Max_voltage = 3.3f;
-    uint16_t Zero_data_x = 0x01FD; //IMU1, IMU2 = 0x01FE;
-    uint16_t Zero_data_y = 0x01FF;//IMU1, IMU2 = 0x01F9;
-    uint16_t Zero_data_z = 0x01FD;//IMU1, IMU1 = 0x0211;
+    uint16_t Zero_data_x = 0x01FD; //IMU1 = 0x01FD, IMU2 = 0x01FE;
+    uint16_t Zero_data_y = 0x01FF;//IMU1 = 0x01FF, IMU2 = 0x01F9;
+    uint16_t Zero_data_z = 0x01FD;//IMU1 = 0x01FD, IMU1 = 0x0211;
     float sensitivity = 0.192f;
     float pi = 3.14159f;
     int gyro_scale = 80;

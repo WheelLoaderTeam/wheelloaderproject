@@ -19,7 +19,7 @@
 
 /*** GLOBAL VARIABLES ***/
 
-//Variable used to have a shut-down routine
+//Variable used for shut-down routine
 int running =1;
 
 //

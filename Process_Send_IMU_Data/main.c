@@ -18,8 +18,8 @@
 #define K                       0     // position = (acceleration - bias)*K
 
 /*** GLOBAL VARIABLES ***/
-//Variable used to have a shut-down routine
-
+//Variable used for shut-down routine
+int running =1;
 //
 circular_buffer savebuffer;
 float *x_acc, *y_acc, *z_acc, *x_head, *y_head, *z_head;
@@ -54,7 +54,8 @@ void writeToBuffer(sensor_data *data);
 
 /*** FUNCTION CODE ***/
 int main(int argc, char *argv[]) {
-    printf("hi");
+    //Setup Signal handler and atexit functions
+	signal(SIGINT, INThandler);                     //Interrupts (calls INThandler) when Ctrl+c (?)
     COM1 = open_serialport("/dev/ttyUSB0",500000); //Open USB port
     Time_struct Curr_time;                          //Create time structure
     Curr_time = get_time();                         //Fill it with current time
@@ -67,12 +68,15 @@ int main(int argc, char *argv[]) {
     initClientSocket(65100, &s_out_sensordata, "10.0.0.10", &outsock); //fakeclient
     sensor_data data;
     initBuffer();
-    while(1) {
+    while(running) {
         data = receiveSensorData();
         writeToBuffer(&data);
         if (processData(&data))
             sendSensorData(&data, s_out_sensordata, outsock, slen);
     }
+    //At end by Ctrl+c
+    printf("Fin\n");
+    fclose(fp);                                     //Close file
     return 0;
 }
 
@@ -324,6 +328,10 @@ bias getAccBias(){
 	printf("X Acc bias: %lf, Y Acc bias: %lf, Z Acc bias: %lf\n",
            acc_bias.xAxis, acc_bias.yAxis, acc_bias.zAxis);
 	return acc_bias;
+}
+// To handle interrupt by keypress
+void INThandler (){
+    running=0; //Stop the infinite loop
 }
 //Workaround to get timestamping to work with ms.
 Time_struct get_time(){

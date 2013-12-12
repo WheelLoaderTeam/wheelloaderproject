@@ -49,6 +49,6 @@ typedef struct{
 /*** FUNCTION PROTOTYPES ***/
 
 Time_struct get_time();
-
+void INThandler ();
 
 #endif
