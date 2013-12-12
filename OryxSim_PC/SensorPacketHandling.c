@@ -120,7 +120,7 @@ int main(int argc, char *argv[]){
             tv.tv_usec  = usec;
             //printf("invoking select() with timeout: %ld ms\n",sec*1000+usec/1000);
             retval=select(sizeof(rfds)*8,&rfds,NULL,NULL,&tv);
-
+            printf("select returned %d\n",retval);
             if(retval ==-1)
             {
                 perror("select()");
