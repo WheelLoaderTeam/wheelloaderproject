@@ -6,17 +6,11 @@ Problem med IMU, lösningar:
 	Mata USB från regulatorn
 
 
+Problem with IMU, solutions:
+	Break the data line between CPU and USB chip, put in resistance in series (2.2k)
+	Feed USB chip from regulator (?)
 
 
-USB får ej anslutas först!!!
+USB får ej anslutas först!!!'
 
-
-
-
-Kolla upp:
-
-	Hur ska man köra gyron utan self-test?
-
-	Hur kör man med self-test?
-
-	Specifikt: timings gällande start och tid mellan sändningar
+DO NOT CONNECT USB FIRST (when using external pwr supply)

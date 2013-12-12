@@ -23915,14 +23915,6 @@ DIO-08053</description>
 <junction x="96.52" y="210.82"/>
 </segment>
 <segment>
-<pinref part="U4" gate="A" pin="GND_2"/>
-<pinref part="U4" gate="A" pin="GND"/>
-<wire x1="114.3" y1="104.14" x2="114.3" y2="101.6" width="0.1524" layer="91"/>
-<pinref part="GND20" gate="1" pin="GND"/>
-<wire x1="114.3" y1="101.6" x2="114.3" y2="99.06" width="0.1524" layer="91"/>
-<wire x1="114.3" y1="101.6" x2="109.22" y2="101.6" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="JP4" gate="A" pin="2"/>
 <pinref part="GND21" gate="1" pin="GND"/>
 <wire x1="226.06" y1="190.5" x2="238.76" y2="190.5" width="0.1524" layer="91"/>
@@ -23943,6 +23935,16 @@ DIO-08053</description>
 <pinref part="R7" gate="G$1" pin="2"/>
 <wire x1="276.86" y1="114.3" x2="284.48" y2="114.3" width="0.1524" layer="91"/>
 <junction x="284.48" y="114.3"/>
+</segment>
+<segment>
+<pinref part="GND20" gate="1" pin="GND"/>
+<wire x1="109.22" y1="101.6" x2="109.22" y2="104.14" width="0.1524" layer="91"/>
+<pinref part="U4" gate="A" pin="GND_2"/>
+<wire x1="109.22" y1="104.14" x2="114.3" y2="104.14" width="0.1524" layer="91"/>
+<wire x1="109.22" y1="101.6" x2="109.22" y2="99.06" width="0.1524" layer="91"/>
+<junction x="109.22" y="101.6"/>
+<pinref part="U4" gate="A" pin="GND"/>
+<wire x1="109.22" y1="99.06" x2="114.3" y2="99.06" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$4" class="0">
@@ -24603,7 +24605,8 @@ DIO-08053</description>
 <pinref part="C21" gate="G$1" pin="1"/>
 <wire x1="246.38" y1="78.74" x2="246.38" y2="71.12" width="0.1524" layer="91"/>
 <pinref part="U3" gate="A" pin="COM"/>
-<wire x1="246.38" y1="71.12" x2="246.38" y2="60.96" width="0.1524" layer="91"/>
+<wire x1="246.38" y1="71.12" x2="246.38" y2="63.5" width="0.1524" layer="91"/>
+<wire x1="246.38" y1="63.5" x2="246.38" y2="60.96" width="0.1524" layer="91"/>
 <wire x1="246.38" y1="71.12" x2="261.62" y2="71.12" width="0.1524" layer="91"/>
 <pinref part="U3" gate="A" pin="COM_2"/>
 <wire x1="261.62" y1="71.12" x2="261.62" y2="73.66" width="0.1524" layer="91"/>
@@ -24614,6 +24617,12 @@ DIO-08053</description>
 <pinref part="U3" gate="A" pin="COM_4"/>
 <junction x="261.62" y="73.66"/>
 <pinref part="GND24" gate="1" pin="GNDA"/>
+<pinref part="U4" gate="A" pin="GND_3"/>
+<wire x1="114.3" y1="101.6" x2="114.3" y2="83.82" width="0.1524" layer="91"/>
+<wire x1="114.3" y1="83.82" x2="226.06" y2="83.82" width="0.1524" layer="91"/>
+<wire x1="226.06" y1="83.82" x2="226.06" y2="63.5" width="0.1524" layer="91"/>
+<wire x1="226.06" y1="63.5" x2="246.38" y2="63.5" width="0.1524" layer="91"/>
+<junction x="246.38" y="63.5"/>
 </segment>
 <segment>
 <pinref part="C24" gate="G$1" pin="1"/>

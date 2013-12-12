@@ -21,7 +21,6 @@
 
 
 uint16_t adc_value;		
-//uint8_t i=0;
 
 
 uint8_t adc_x_hi;
@@ -40,28 +39,17 @@ int main(void)
 	
 	usart_init(0);
 	init_ADC();
-	//init_timer();
+	init_timer();
 	spiInit();
-//	uint8_t i = 0;
-// 	while(1) {
-// 		usart_send(i++);
-// 		spiTransferAll(0x88888888, 1);
-// 		spiTransferAll(0x88888888, 2);
-// 		spiTransferAll(0x88888888, 3);
-// 		_delay_ms(1);
-// 	}
-// 	
-// 	return 0;
 	
 	_delay_ms(100);
-	gyroZ = spiTransferAll(0x20000003,1);
+	gyroZ = spiTransferAll(0x20000003,1);		// Start-up sequence, see data sheet
 	_delay_ms(50);
 
 	gyroZ = spiTransferAll(0x20000000,1);
 	_delay_ms(50);
 
 	gyroZ = spiTransferAll(0x20000000,1);
-		//Future: See if self-test was correct
 	_delay_ms(0.1);
 
 	gyroZ = spiTransferAll(0x20000000,1);
@@ -74,7 +62,6 @@ int main(void)
 	_delay_ms(50);
 
 	gyroX = spiTransferAll(0x20000000,2);
-	//Future: See if self-test was correct
 	_delay_ms(0.1);
 
 	gyroX = spiTransferAll(0x20000000,2);
@@ -86,8 +73,7 @@ int main(void)
 	gyroY = spiTransferAll(0x20000000,3);
 	_delay_ms(50);
 
-	gyroY = spiTransferAll(0x20000000,3);
-	//Future: See if self-test was correct
+	gyroY = spiTransferAll(0x20000000,3);	
 	_delay_ms(0.1);
 
 	gyroY = spiTransferAll(0x20000000,3);
@@ -97,85 +83,50 @@ int main(void)
 
     while(1)
     {
-		usart_send(0x00);
-		usart_send(0x00);
-		usart_send(0x00);
-		usart_send(0x00);
- 		gyroX = spiTransferAll(0x20000000,2);
-		_delay_ms(0.1);
-		gyroX = spiTransferAll(0x20000000,2);
-		_delay_ms(0.1);
-		usart_send((uint8_t)(gyroX>>24)); //Send most significant byte first
-		usart_send((uint8_t)(gyroX>>16));	//Send next byte
-		usart_send((uint8_t)(gyroX>>8));				//Send next byte
-		usart_send((uint8_t)gyroX);					//Send last byte
-		gyroY = spiTransferAll(0x20000000,3);
-		_delay_ms(0.1);
-		gyroY = spiTransferAll(0x20000000,3);
-		_delay_ms(0.1);
-		usart_send((uint8_t)(gyroY>>24)); //Send most significant byte first
-		usart_send((uint8_t)(gyroY>>16));	//Send next byte
-		usart_send((uint8_t)(gyroY>>8));				//Send next byte
-		usart_send((uint8_t)gyroY);
-		gyroZ = spiTransferAll(0x20000000,1);
-		_delay_ms(0.1);
-		gyroZ = spiTransferAll(0x20000000,1);
-		_delay_ms(0.1);
-		usart_send((uint8_t)(gyroZ>>24)); //Send most significant byte first
-		usart_send((uint8_t)(gyroZ>>16));	//Send next byte
-		usart_send((uint8_t)(gyroZ>>8));				//Send next byte
-		usart_send((uint8_t)gyroZ);
-		adc_value = read_adc(2);
-		adc_x_hi = (uint8_t)(adc_value>>8);
-		adc_x_lo = (uint8_t)adc_value;
-		usart_send(adc_x_hi);
-		usart_send(adc_x_lo);
-		adc_value = read_adc(1);
-		adc_y_hi = (uint8_t)(adc_value>>8);
-		adc_y_lo = (uint8_t)adc_value;
-		usart_send(adc_y_hi);
-		usart_send(adc_y_lo);
-		adc_value = read_adc(0);
-		adc_z_hi = (uint8_t)(adc_value>>8);
-		adc_z_lo = (uint8_t)adc_value;
-		usart_send(adc_z_hi);
-		usart_send(adc_z_lo);
+		;
 	}
 }
 
-
-//char a = 0;
+/* The coordinates are defined in the documentation.*/
 
 ISR(TIMER1_COMPA_vect){
-	/*
-	adc_value = read_adc(0);
-	adc_z_hi = (uint8_t)(adc_value>>8);
-	adc_z_lo = (uint8_t)adc_value;
-	usart_send(adc_z_hi);
-	usart_send(adc_z_lo);
-	usart_send('\n');
-	adc_value = read_adc(1);
-	adc_y_hi = (uint8_t)(adc_value>>8);
-	adc_y_lo = (uint8_t)adc_value;
-	usart_send(adc_y_hi);
-	usart_send(adc_y_lo);
-	usart_send('\n');
-	adc_value = read_adc(2);
+	usart_send(0x00);
+	usart_send(0x00);
+	usart_send(0x00);
+	usart_send(0x00);
+	gyroX = spiTransferAll(0x20000000,3);	//Pos. X direction
+						
+	usart_send((uint8_t)(gyroX>>24));		//Send most significant byte first
+	usart_send((uint8_t)(gyroX>>16));		//Send next byte
+	usart_send((uint8_t)(gyroX>>8));		//Send next byte
+	usart_send((uint8_t)gyroX);				//Send last byte
+	gyroY = spiTransferAll(0x20000000,2);	//Neg. Y direction
+
+	usart_send((uint8_t)(gyroY>>24));		//Send most significant byte first
+	usart_send((uint8_t)(gyroY>>16));		//Send next byte
+	usart_send((uint8_t)(gyroY>>8));		//Send next byte
+	usart_send((uint8_t)gyroY);				//Send last byte
+	gyroZ = spiTransferAll(0x20000000,1);	//Pos. Z direction
+
+	usart_send((uint8_t)(gyroZ>>24));		//Send most significant byte first
+	usart_send((uint8_t)(gyroZ>>16));		//Send next byte
+	usart_send((uint8_t)(gyroZ>>8));		//Send next byte
+	usart_send((uint8_t)gyroZ);				//Send last byte
+	adc_value = read_adc(1);				//Neg. X direction (corresponding to y in acc)
 	adc_x_hi = (uint8_t)(adc_value>>8);
 	adc_x_lo = (uint8_t)adc_value;
 	usart_send(adc_x_hi);
 	usart_send(adc_x_lo);
-	usart_send('\n');
-	*/
-	
-
-// 	usart_send('I');
-//  	gyro = spiTransferAll(0x20000000,1);
-// 	  	usart_send((uint8_t)(gyro>>24));	//Send most significant byte first
-// 	   	usart_send((uint8_t)(gyro>>16));	//Send next byte
-// 	   	usart_send((uint8_t)(gyro>>8));		//Send next byte
-// 	  	usart_send((uint8_t)gyro);			//Send last byte
-// 	usart_send('Y');	
+	adc_value = read_adc(2);				//Neg. Y direction (corresponding to x in acc)
+	adc_y_hi = (uint8_t)(adc_value>>8);
+	adc_y_lo = (uint8_t)adc_value;
+	usart_send(adc_y_hi);
+	usart_send(adc_y_lo);
+	adc_value = read_adc(0);				//Neg. Z direction (corresponding to z in acc)
+	adc_z_hi = (uint8_t)(adc_value>>8);
+	adc_z_lo = (uint8_t)adc_value;
+	usart_send(adc_z_hi);
+	usart_send(adc_z_lo);
 }
 
 

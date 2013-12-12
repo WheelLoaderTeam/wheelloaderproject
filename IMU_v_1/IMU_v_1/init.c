@@ -5,7 +5,6 @@
 #include "init.h"
 #include "usart.h"
 
-
 void init_ports(void)	{
 	DDRA = 0xFF; //Not used, set as outputs
 	DDRB = 0xF7; //Set not used as outputs, MISO input, MOSI output, SCK output, all CS is active low
@@ -43,12 +42,6 @@ void init_timer(void){		//Timer for creating interrupts to send measured data (C
 	TCCR1B |= (1<<WGM12)|(1<<CS11);  //Set in CTC-mode, compare with OCR1A, fIO/8
 	TIMSK1 |= (1<<OCIE1A);	//Enable compare match interrupt
 	OCR1A = 0x270F;			//0x270F with fIO/8 creates a 100 Hz interrupt frequency
-
-/*! Just a test to see correctness, interrupt at 1Hz
-TCCR1B |= (1<<WGM12)|(1<<CS12)|(1<<CS10);
-TIMSK1 |= (1<<OCIE1A);
-OCR1A = 0x1E83;
-*/
 }
 
 //The USART function are taken from Larsmark
