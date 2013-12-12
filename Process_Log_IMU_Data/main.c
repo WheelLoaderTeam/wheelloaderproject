@@ -4,9 +4,9 @@
 #include <stdbool.h>
 #include <float.h> 				//Do we need?
 #include <math.h> 				//asin
-#include "processdata.h"
+#include "processdataIMU.h"
 #include "../OryxSim_PC/SensorPacketHandling.h"
-#include "receiveSensorData.h"
+#include "receiveSensorDataIMU.h"
 
 #define SENSOR_FREQ             100     // expected sensor frequency in Hz
 #define BUF_SIZE                200 	// size of circular buffer
@@ -18,8 +18,10 @@
 #define K                       0     // position = (acceleration - bias)*K
 
 /*** GLOBAL VARIABLES ***/
+
 //Variable used for shut-down routine
 int running =1;
+
 //
 circular_buffer savebuffer;
 float *x_acc, *y_acc, *z_acc, *x_head, *y_head, *z_head;
@@ -34,21 +36,20 @@ abs_pos radians_curr;
 bias gyro_bias;
 bias acc_bias;
 
+
 // communication port
 int COM1;
 
 //Filed used for logging
 FILE *fp;
+
 /*** FUNCTION PROTOTYPES ***/
-
 int processData(sensor_data *data);
-void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in outsock, int slen);
-
+void logSensorData(sensor_data *data);
 int checkIfSS();
 abs_pos getAbsPos();
 bias getGyroBias();
 bias getAccBias();
-
 void initBuffer();
 void writeToBuffer(sensor_data *data);
 
@@ -56,23 +57,19 @@ void writeToBuffer(sensor_data *data);
 int main(int argc, char *argv[]) {
     //Setup Signal handler and atexit functions
 	signal(SIGINT, INThandler);                     //Interrupts (calls INThandler) when Ctrl+c (?)
-    COM1 = open_serialport("/dev/ttyUSB0",500000); //Open USB port
+    COM1 = open_serialport("/dev/ttyUSB0",500000);  //Open USB port
     Time_struct Curr_time;                          //Create time structure
     Curr_time = get_time();                         //Fill it with current time
     char fname[26];                                 //Create space for filename
     sprintf(fname, "%d-%d-%d-%d:%d:%d:%d.csv", Curr_time.year, Curr_time.month, Curr_time.day, Curr_time.hour, Curr_time.minute, Curr_time.second, Curr_time.msecond); //Create filename (date, time)
     fp = fopen(fname,"w");                          //Open file
-    struct sockaddr_in outsock;
-    int s_out_sensordata, slen = sizeof(struct sockaddr_in);
-    //initClientSocket(IMU_PORT, &s_out_sensordata, OPC_IP, &outsock);
-    initClientSocket(65100, &s_out_sensordata, "10.0.0.10", &outsock); //fakeclient
-    sensor_data data;
+    sensor_data data;                               //Create in-data struct
     initBuffer();
     while(running) {
-        data = receiveSensorData();
+        data = receiveSensorDataIMU();              //Fetch data
         writeToBuffer(&data);
         if (processData(&data))
-            sendSensorData(&data, s_out_sensordata, outsock, slen);
+            logSensorData(&data);
     }
     //At end by Ctrl+c
     printf("Fin\n");
@@ -127,10 +124,8 @@ int processData(sensor_data *data) {
     return 1;
 }
 
-void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in outsock, int slen) {
-    printf("HI, we're in sendSensorData\n");
-    static int id = 0;
-    packet_header header = {id++,8*4}; // size = 6 OR 6*4 OR 8 OR 8*4 ???
+void logSensorData(sensor_data *data) {
+    printf("HI, we're in logSensorData\n");
     packet_load load;
 
     load.posX = (data->accX - acc_bias.xAxis) * K;
@@ -140,27 +135,9 @@ void sendSensorData(sensor_data *data, int s_out_sensordata, struct sockaddr_in 
     load.rotX = radians_curr.roll;
     load.rotY = radians_curr.pitch;
     load.rotZ = 0;
-
-    //send a packet over the network
-    SensorDataTime send_data;
-    struct timespec spec;
-    send_data.id = header.id;
-    send_data.psize = 32;
-    send_data.values[0] = load.posX;
-    send_data.values[1] = load.posY;
-    send_data.values[2] = load.posZ;
-    send_data.values[3] = load.rotX;
-    send_data.values[4] = load.rotY;
-    send_data.values[5] = load.rotZ;
-    clock_gettime(CLOCK_REALTIME, &spec);
-    send_data.timestamp = spec;
     Time_struct Curr_time;
     Curr_time = get_time();
     fprintf(fp, "%d-%d-%d-%d:%d:%d:%d %f %f %f %f %f %f %f %f %f %f %f %f\n", Curr_time.year, Curr_time.month, Curr_time.day, Curr_time.hour, Curr_time.minute, Curr_time.second, Curr_time.msecond, data->accX, data->accY, data->accZ, data->rotX, data->rotY, data->rotZ, load.posX,load.posY,load.posZ, load.rotX, load.rotY, load.rotZ);
-    if (sendto(s_out_sensordata, &send_data, sizeof(SensorDataTime) , 0 , (struct sockaddr *) &outsock, slen)==-1)
-    {
-        die("sendto(), processdata.c line 139");
-    }
 }
 
 
@@ -350,4 +327,3 @@ Time_struct get_time(){
     Time_Val.msecond = tv.tv_usec;
 return Time_Val;
 }
-
