@@ -8,6 +8,9 @@
 #include<arpa/inet.h>
 #include<sys/socket.h>
 #include<unistd.h>
+#include <sys/time.h>
+#include <time.h>
+#include "../OryxSim_PC/sensorData.h"
 
 #define PACKETLEN 8  //Max length of buffer
 #define PORT 6666  //The port on which to listen for incoming data
@@ -22,8 +25,8 @@ int main(void)
 {
     struct sockaddr_in si_me, si_other;
 
-    int s, i, slen = sizeof(si_other) , recv_len;
-    float packet[PACKETLEN];
+    int s, slen = sizeof(si_other) , recv_len;
+    SensorData data;
 
     //create a UDP socket
     if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
@@ -43,24 +46,32 @@ int main(void)
     {
         die("bind");
     }
-
+    long currentTime;
+    struct timespec spec;
     //keep listening for data
     while(1)
     {
         printf("Waiting for data...");
         fflush(stdout);
+        clock_gettime(CLOCK_REALTIME, &spec);
+        currentTime = spec.tv_sec*1000000 + spec.tv_nsec / 1000;
 
         //try to receive some data, this is a blocking call
-        if ((recv_len = recvfrom(s, packet, PACKETLEN*sizeof(float), 0, (struct sockaddr *) &si_other, (socklen_t *)&slen)) == -1)
+        if ((recv_len = recvfrom(s, &data, sizeof(SensorData), 0, (struct sockaddr *) &si_other, (socklen_t *)&slen)) == -1)
         {
             die("recvfrom()");
         }
         //print details of the client/peer and the data received
         printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
-        for (i=0; i<PACKETLEN; i++)
-        {
-        printf("Data: %f\n" , packet[i]);
-        }
+        printf("packet : %d\t%d\t",data.id,data.psize);
+                int i;
+                for (i=0; i<LEN_BUF_SENSOR-2; i++)
+                {
+                    printf("%f\t",data.values[i]);
+                }
+        clock_gettime(CLOCK_REALTIME, &spec);
+        currentTime = spec.tv_sec*1000000 + spec.tv_nsec / 1000 - currentTime;
+        printf("time between received packet is %ld ms\n",currentTime/1000);
 
     }
 

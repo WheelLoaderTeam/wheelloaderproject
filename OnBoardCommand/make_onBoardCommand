@@ -1,0 +1,7 @@
+all: clean onBoardCommand
+
+onBoardCommand:
+	gcc -std=c99 -iquote ../net -iquote ../EBU_packets -iquote ../CommandPackets -iquote ../tsmod -o onBoardCommand onBoardCommand.c stats.c ../EBU_packets/EBUanalogOut.c ../EBU_packets/EBUrelays.c ../CommandPackets/commandPacket.c ../net/socket.c ../tsmod/tsmod.c
+
+clean:
+	rm -rf *.o onBoardCommand
