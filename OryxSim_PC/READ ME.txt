@@ -1,3 +1,3 @@
-this folder contain the two programs that are running on the Oryx simulator PC handling sensor data from the IMU to the Sim. and the command from the Sim. to the Wheel Loader
-those projct depend on the socket.c file zhich is in the net folder 
-
+this folder contains the program that take the packets from the OnBoard PC and send it to the simulator.
+It smooths the movement if necessary. the value of smoothness is set in the .h file
+this project depends on the tsmod folder for timespec calculation and on the net folder for initializing the sockets

@@ -3,13 +3,12 @@
 
 
 
-// TODO verify if next value to be send is close enough to the last value sent and if not modify the value
-// TODO one key on the keyboard that quit the program nicely
+// condition variable for the infinite loop set to 0 when the program is stopped
 int running =1;
 void INThandler ();
 
 int main(int argc, char *argv[]){
-    //Setup Signal handler and atexit functions
+    //Setup Signal handler for the CTRL+C
 	signal(SIGINT, INThandler);
 
 
@@ -20,6 +19,7 @@ int main(int argc, char *argv[]){
     // some boolean to check if it's the first packet received or if a packet is pending
     bool packetPending = false;
     bool firstPacket = true;
+    // the ID that the Oryx simulator is waiting to recognize movement packets
     int packetID = 2001;
     // retval => result of the select fonction
     // freq => the frequency thqt we set in argv[1]
@@ -37,8 +37,9 @@ int main(int argc, char *argv[]){
 
 
     sscanf(argv[1],"%d",&freq);
-    // init of the packets so it doesn't point to nowhere at the beginning of the program
-    SensorDataTime dataTime;
+    // init of the packets so it doesn't point to nowhere at the beginning of the progra
+    //dataTime packet receiving the packet send by the Onboard PC
+    SensorDataTitme dataTime;
     dataTime.id = packetID;
     dataTime.psize = 32;
     int i;
@@ -48,7 +49,7 @@ int main(int argc, char *argv[]){
     }
     dataTime.timestamp.tv_sec = 0;
     dataTime.timestamp.tv_nsec = 0;
-
+    //same as dataTime but without the timestamp
     SensorData data;
     data.id = packetID;
     data.psize = 32;
@@ -73,6 +74,8 @@ int main(int argc, char *argv[]){
     {
         oldData[1].values[i]=0;
     }
+
+    //Packet sent to the simulator with modified ID
     SensorData toBeSend;
     toBeSend.id = packetID;
     toBeSend.psize = 32;
@@ -111,8 +114,6 @@ int main(int argc, char *argv[]){
         // set the file descriptor of the input socket so it can be used in the select fonction
             FD_ZERO(&rfds);
             FD_SET(s_onBoard, &rfds);
-            //if (FD_ISSET(s_onBoard, &rfds))
-                //printf("rfds set, beginning the loop\n");
 
         // set the value of the timer and start the timer
         // the timer stop either if timeout is reach or a nez packet is received
@@ -131,7 +132,9 @@ int main(int argc, char *argv[]){
                 {
                     die("recvfrom()");
                 }
+                //increase the number of received packets
                 numbRecv++;
+
                 // put the packet received with timestamp into a sensorData packet without
                 data.id = dataTime.id;
                 data.psize = dataTime.psize;
@@ -150,20 +153,18 @@ int main(int argc, char *argv[]){
 //                    }
 //                    else printf("%f\n",data.values[i]);
 //                }
-
+                // q pqcket is now pending ready to be send
                 packetPending = true;
 
-                // check ID
+                // check ID and save the last two packets and calculate the smooth motion
                 if(data.id<oldData[1].id)
                 {//discard the data
-                //printf("packet discarded\n");
                 }
                 else if(data.id<oldData[0].id)
                 {
                     //put data in dataOld[1]
                     data = smoothMotion(toBeSend,data);
                     oldData[1] = data;
-                  //  printf("data copied in oldData[1]\n");
                 }
                 else
                 {
@@ -184,12 +185,10 @@ int main(int argc, char *argv[]){
                     numbLost--;
                     numbOut++;
                 }
-                //calcul of remaining time
+                //calcul of remaining time before sending
                 clock_gettime(CLOCK_REALTIME, &spec);
                 currentTime = spec.tv_sec*1000000 + spec.tv_nsec / 1000;
-                //printf("current time is %ld ms\n",sec*1000+currentTime/1000);
                 usec =  timeOfLastPacketSend + (long)(1.0 / freq * 1000000) - currentTime;
-                //printf("usec = %ld\n",usec);
 
                 // calcul of delay between onboard and onsite PCs
                 temp = tsSub(spec,dataTime.timestamp);
