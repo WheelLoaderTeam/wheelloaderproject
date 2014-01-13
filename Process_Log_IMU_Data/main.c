@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
     Time_struct Curr_time;                          //Create time structure
     Curr_time = get_time();                         //Fill it with current time
     char fname[26];                                 //Create space for filename
-    sprintf(fname, "%d-%d-%d-%d:%d:%d:%d.csv", Curr_time.year, Curr_time.month, Curr_time.day, Curr_time.hour, Curr_time.minute, Curr_time.second, Curr_time.msecond); //Create filename (date, time)
+    sprintf(fname, "%d-%d-%d-%d-%d-%d-%d.csv", Curr_time.year, Curr_time.month, Curr_time.day, Curr_time.hour, Curr_time.minute, Curr_time.second, Curr_time.msecond); //Create filename (date, time)
     fp = fopen(fname,"w");                          //Open file
     sensor_data data;                               //Create in-data struct
     initBuffer();
@@ -137,7 +137,7 @@ void logSensorData(sensor_data *data) {
     load.rotZ = 0;
     Time_struct Curr_time;
     Curr_time = get_time();
-    fprintf(fp, "%d-%d-%d-%d:%d:%d:%d %f %f %f %f %f %f %f %f %f %f %f %f\n", Curr_time.year, Curr_time.month, Curr_time.day, Curr_time.hour, Curr_time.minute, Curr_time.second, Curr_time.msecond, data->accX, data->accY, data->accZ, data->rotX, data->rotY, data->rotZ, load.posX,load.posY,load.posZ, load.rotX, load.rotY, load.rotZ);
+    fprintf(fp, "%d-%d-%d-%d-%d-%d-%d %f %f %f %f %f %f %f %f %f %f %f %f\n", Curr_time.year, Curr_time.month, Curr_time.day, Curr_time.hour, Curr_time.minute, Curr_time.second, Curr_time.msecond, data->accX, data->accY, data->accZ, data->rotX, data->rotY, data->rotZ, load.posX,load.posY,load.posZ, load.rotX, load.rotY, load.rotZ);
 }
 
 

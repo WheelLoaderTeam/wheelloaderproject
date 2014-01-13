@@ -112,9 +112,9 @@ int main(){
     int16_t gyro_z;
     int16_t Max_size = 0x03FF;
     float Max_voltage = 3.3f;
-    uint16_t Zero_data_x = 0x01FE; //IMU2, IMU1 = 0x01FD;
-    uint16_t Zero_data_y = 0x01F9;//IMU2, IMU1 = 0x01FF;
-    uint16_t Zero_data_z = 0x0211;//IMU2, IMU1 = 0x01FD;
+    uint16_t Zero_data_x = 0x01FE;//IMU3,IMU2 = 0x01FE; IMU1 = 0x01FD;
+    uint16_t Zero_data_y = 0x01FB;//IMU3, IMU2 = 0x01F9; IMU1 = 0x01FF;
+    uint16_t Zero_data_z = 0x0217;//IMU3, IMU2 = 0x0211; IMU1 = 0x01FD;
     float sensitivity = 0.192f;
     float gravity = 9.82f;
     float pi = 3.14159f;
@@ -256,13 +256,14 @@ int main(){
                 //ATTENTION! Some of the received data must be sign changed: rotY, should be inverted (turns out the acc chip has weird axis-defs)
                 //printf("%d\n",acc_z);
                 if (error_flag == 0){
+                    //No sign change on acc, because we want pos acc along axises
                     sensorData.accX = (acc_x-Zero_data_x)*(Max_voltage/sensitivity)*gravity/Max_size;
                     sensorData.accY = (acc_y-Zero_data_y)*(Max_voltage/sensitivity)*gravity/Max_size;
                     sensorData.accZ = (acc_z-Zero_data_z)*(Max_voltage/sensitivity)*gravity/Max_size;
                     sensorData.rotX = (gyro_x/gyro_scale)*(pi/pi_scale);
                     sensorData.rotY = -(gyro_y/gyro_scale)*(pi/pi_scale);
                     sensorData.rotZ = (gyro_z/gyro_scale)*(pi/pi_scale);
-                    printf("%f\n", sensorData.accY);
+                    printf("%f\n", sensorData.accZ);
                     }
                 else{
                     printf("Bad data\n");
