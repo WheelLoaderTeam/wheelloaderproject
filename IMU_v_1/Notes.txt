@@ -1,9 +1,4 @@
 
-Problem med IMU, lösningar:
-
-	Bryt dataledning mellan CPU och USB, lägg motstånd i serie (2.2k)
-
-	Mata USB från regulatorn
 
 
 Problem with IMU, solutions:
@@ -11,6 +6,5 @@ Problem with IMU, solutions:
 	Feed USB chip from regulator (?)
 
 
-USB får ej anslutas först!!!'
 
 DO NOT CONNECT USB FIRST (when using external pwr supply)
