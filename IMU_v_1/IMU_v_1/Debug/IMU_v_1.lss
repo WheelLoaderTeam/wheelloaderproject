@@ -21,15 +21,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
   8 .debug_abbrev 0000078b  00000000  00000000  000023d9  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_line   00000db4  00000000  00000000  00002b64  2**0
+  9 .debug_line   00000db0  00000000  00000000  00002b64  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_frame  00000274  00000000  00000000  00003918  2**2
+ 10 .debug_frame  00000274  00000000  00000000  00003914  2**2
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_str    0000049a  00000000  00000000  00003b8c  2**0
+ 11 .debug_str    000004d1  00000000  00000000  00003b88  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_loc    00000a13  00000000  00000000  00004026  2**0
+ 12 .debug_loc    00000a13  00000000  00000000  00004059  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .debug_ranges 000000b8  00000000  00000000  00004a39  2**0
+ 13 .debug_ranges 000000b8  00000000  00000000  00004a6c  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -594,12 +594,6 @@ ISR(TIMER1_COMPA_vect){
  45e:	18 95       	reti
 
 00000460 <init_ADC>:
-}
-void usart_putstring(char* data, unsigned char length){
-	int i;
-	for (i=0;i<length;i++)
-	usart_send(*(data++));
-}
  460:	ec e7       	ldi	r30, 0x7C	; 124
  462:	f0 e0       	ldi	r31, 0x00	; 0
  464:	80 81       	ld	r24, Z
@@ -660,31 +654,22 @@ void usart_putstring(char* data, unsigned char length){
  4d4:	08 95       	ret
 
 000004d6 <read_adc>:
-
-
-//All this should be put in another file, like init.c
-uint16_t read_adc(uint8_t channel){
-	ADMUX &= 0xF0;			//Clear older read channel
  4d6:	ec e7       	ldi	r30, 0x7C	; 124
  4d8:	f0 e0       	ldi	r31, 0x00	; 0
  4da:	90 81       	ld	r25, Z
  4dc:	90 7f       	andi	r25, 0xF0	; 240
  4de:	90 83       	st	Z, r25
-	ADMUX |= channel;		//Define new channel to read
  4e0:	90 81       	ld	r25, Z
  4e2:	89 2b       	or	r24, r25
  4e4:	80 83       	st	Z, r24
-	ADCSRA |= (1<<ADSC);	//Starts a new conversion
  4e6:	ea e7       	ldi	r30, 0x7A	; 122
  4e8:	f0 e0       	ldi	r31, 0x00	; 0
  4ea:	80 81       	ld	r24, Z
  4ec:	80 64       	ori	r24, 0x40	; 64
  4ee:	80 83       	st	Z, r24
-	while(ADCSRA & (1<<ADSC)); //Wait until conversion is complete
  4f0:	80 81       	ld	r24, Z
  4f2:	86 fd       	sbrc	r24, 6
  4f4:	fd cf       	rjmp	.-6      	; 0x4f0 <read_adc+0x1a>
-	return ADCW;
  4f6:	20 91 78 00 	lds	r18, 0x0078
  4fa:	30 91 79 00 	lds	r19, 0x0079
  4fe:	82 2f       	mov	r24, r18
@@ -693,7 +678,7 @@ uint16_t read_adc(uint8_t channel){
 
 00000504 <spiInit>:
 #include <util/delay.h>
-#include "spi_1.h"
+#include "spi.h"
 #include "init.h"
 void spiInit()
 {

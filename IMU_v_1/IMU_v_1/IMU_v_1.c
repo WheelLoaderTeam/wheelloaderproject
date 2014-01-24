@@ -17,7 +17,7 @@
 
 
 #include "init.h"
-#include "spi_1.h"
+#include "spi.h"
 
 
 uint16_t adc_value;		

@@ -1,131 +1,66 @@
-/*! \file spi.c \brief SPI interface driver. */
-//*****************************************************************************
-//
-// File Name	: 'spi.c'
-// Title		: SPI interface driver
-// Author		: Pascal Stang - Copyright (C) 2000-2002 - Modified by Mikael Larsmark
-// Created		: 11/22/2000
-// Revised		: 06/06/2002
-// Version		: 0.6
-// Target MCU	: Atmel AVR series
-// Editor Tabs	: 4
-//
-// NOTE: This code is currently below version 1.0, and therefore is considered
-// to be lacking in some functionality or documentation, or may not be fully
-// tested.  Nonetheless, you can expect most functions to work.
-//
-// This code is distributed under the GNU Public License
-//		which can be found at http://www.gnu.org/licenses/gpl.txt
-//
-//*****************************************************************************
-
 #include <avr/io.h>
 #include <avr/signal.h>
 #include <avr/interrupt.h>
-
+#include "global.h"
+#include <util/delay.h>
 #include "spi.h"
-
-// Define the SPI_USEINT key if you want SPI bus operation to be
-// interrupt-driven.  The primary reason for not using SPI in
-// interrupt-driven mode is if the SPI send/transfer commands
-// will be used from within some other interrupt service routine
-// or if interrupts might be globally turned off due to of other
-// aspects of your program
-//
-// Comment-out or uncomment this line as necessary
-//#define SPI_USEINT
-
-// global variables
-volatile u08 spiTransferComplete;
-
-// SPI interrupt service handler
-#ifdef SPI_USEINT
-SIGNAL(SIG_SPI)
-{
-	spiTransferComplete = TRUE;
-}
-#endif
-
-// access routines
+#include "init.h"
 void spiInit()
 {
-	// setup SPI I/O pins
-	sbi(PORTB, 1);		// set SCK hi
-	sbi(DDRB, 1);			// set SCK as output
-	cbi(DDRB, 3);			// set MISO as input
-	sbi(DDRB, 2);			// set MOSI as output
-	sbi(DDRB, 0);			// SS must be output for Master mode to work
+	DDRB = (1<<1)|(1<<2)|(1<<4)|(1<<5)|(1<<6);
+	SPCR = (1<<MSTR)|(1<<SPE);
+	SPSR = (1<<SPI2X);
+	PORTB |= (1<<PB4)|(1<<PB5)|(1<<PB6);
+}
+
+void spiSendByte(uint8_t data)
+{
+	SPDR = data;
+	/*Wait for transmission complete*/
+	while(!(SPSR & (1<<SPIF)));
+}
+
+
+/* Function to send 32 bit command and receive 32 bit data*/
+uint32_t spiTransferAll(uint32_t data, int CS)
+{
+	uint32_t outdata;
+	PORTB &= ~(1<<PB0);					//Possibly needed to start CLK
+	if (CS == 1)
+	{
+		PORTB &= ~(1<<PB4);				//Set CS1 low
+	}
+	if (CS == 2)
+	{
+		PORTB &= ~(1<<PB5);				//Set CS2 low
+	}	 
+	if (CS == 3)
+	{
+		PORTB &= ~(1<<PB6);				//Set CS3 low
+	}
+	outdata = 0;
+	spiSendByte((uint8_t)(data>>24));	//Send most significant byte first
+	outdata = ((uint32_t)SPDR)<<24;
+	spiSendByte((uint8_t)(data>>16));	//Send next byte
+	outdata |= ((uint32_t)SPDR)<<16;		
+	spiSendByte((uint8_t)(data>>8));	//Send next byte
+	outdata |= ((uint32_t)SPDR)<<8;
+	spiSendByte((uint8_t)data);			//Send last byte
+	outdata |= ((uint32_t)SPDR);
+	if (CS == 1)
+	{
+		PORTB |= (1<<PB4);				//Set CS1 high
+	}
+	if (CS == 2)
+	{
+		PORTB |= (1<<PB5);				//Set CS2 high
+	}
+	if (CS == 3)
+	{
+		PORTB |= (1<<PB6);				//Set CS3 high
+	}
+	PORTB |= (1<<PB0);
+	return outdata;
+}
 	
-	// setup SPI interface :
-	// master mode
-	sbi(SPCR, MSTR);
-	// clock = f/4
-	cbi(SPCR, SPR0);
-	cbi(SPCR, SPR1);
-	// select clock phase negative-going in middle of data
-	sbi(SPCR, CPOL);
-	sbi(SPCR, CPHA);
-	// Data order MSB first
-	cbi(SPCR,DORD);
-	// enable SPI
-	sbi(SPCR, SPE);
 
-	// clear status
-	inb(SPSR);
-	spiTransferComplete = TRUE;
-}
-
-void spiSendByte(u08 data)
-{
-	// send a byte over SPI and ignore reply
-	#ifdef SPI_USEINT
-		while(!spiTransferComplete);
-	#else
-		while(!(inb(SPSR) & (1<<SPIF)));
-	#endif
-
-	spiTransferComplete = FALSE;
-	outb(SPDR, data);
-}
-
-u08 spiTransferByte(u08 data)
-{
-/*	// make sure interface is idle
-	#ifdef SPI_USEINT
-		while(!spiTransferComplete);
-	#else
-		while(!(inb(SPSR) & (1<<SPIF)));
-	#endif
-*/
-	// send the given data
-	spiTransferComplete = FALSE;
-	outb(SPDR, data);
-
-	// wait for transfer to complete
-	#ifdef SPI_USEINT
-		while(!spiTransferComplete);
-	#else
-		while(!(inb(SPSR) & (1<<SPIF)));
-		// *** reading of the SPSR and SPDR are crucial
-		// *** to the clearing of the SPIF flag
-		// *** in non-interrupt mode
-		//inb(SPDR);
-		// set flag
-		spiTransferComplete = TRUE;
-	#endif
-	// return the received data
-	return inb(SPDR);
-}
-
-u16 spiTransferWord(u16 data)
-{
-	u16 rxData = 0;
-
-	// send MS byte of given data
-	rxData = (spiTransferByte((data>>8) & 0x00FF))<<8;
-	// send LS byte of given data
-	rxData |= (spiTransferByte(data & 0x00FF));
-
-	// return the received data
-	return rxData;
-}

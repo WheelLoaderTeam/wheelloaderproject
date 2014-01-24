@@ -115,7 +115,7 @@
     <Compile Include="init.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="spi_1.c">
+    <Compile Include="spi.c">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>
