@@ -247,9 +247,9 @@ sensor_data receiveSensorDataIMU(){
                 pkg_cntr = 0;               //Reset counter when end of sending is reached
                 if (error_flag == 0){
                     //No sign change on acc, because we want pos acc along axises
-                    sensorData.accX = -(acc_x-Zero_data_x)*(Max_voltage/sensitivity)/Max_size;
-                    sensorData.accY = -(acc_y-Zero_data_y)*(Max_voltage/sensitivity)/Max_size;
-                    sensorData.accZ = -(acc_z-Zero_data_z)*(Max_voltage/sensitivity)/Max_size;
+                    sensorData.accX = (acc_x-Zero_data_x)*(Max_voltage/sensitivity)/Max_size;
+                    sensorData.accY = (acc_y-Zero_data_y)*(Max_voltage/sensitivity)/Max_size;
+                    sensorData.accZ = (acc_z-Zero_data_z)*(Max_voltage/sensitivity)/Max_size;
                     sensorData.rotX = (gyro_x/gyro_scale)*(pi/pi_scale);
                     sensorData.rotY = -(gyro_y/gyro_scale)*(pi/pi_scale);
                     sensorData.rotZ = (gyro_z/gyro_scale)*(pi/pi_scale);
