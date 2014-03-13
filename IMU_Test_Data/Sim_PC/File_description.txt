@@ -1,0 +1,4 @@
+2013-12-12-13_35_33: Proof of similar data from both IMUs
+2013-12-12-13_50_54: Bad comparison
+2013-12-12-141557: Movement comparison, driving WL around
+2013-12-12-144249: Movement comparison, driving WL around 
